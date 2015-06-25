@@ -1,0 +1,64 @@
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-input/iron-input.html">
+<link rel="import" href="x-mixtaper.html">
+
+<dom-module id="x-search">
+<template>
+  <style>
+    .searchResult {
+       text-decoration: underline;
+    }
+  </style>
+  <div>
+    <div style="padding-top: 50px; padding-bottom: 100px;">
+      <paper-input id="is" label="search" on-input="search"></paper-input>
+
+      <div syle="margin-top: 50px;">
+        <template is="dom-repeat" items="{{searchResult.playlists}}">
+          <span class="searchResult">Playlist</span> <span>{{item.title}}</span><br>
+        </template>
+        <template is="dom-repeat" items="{{searchResult.artists}}">
+          <span class="searchResult">Artist</span> <span>{{item.artist}}</span><br>
+        </template>
+        <template is="dom-repeat" items="{{searchResult.media}}">
+          <span class="searchResult">Media</span> <span>{{item.title}}</span><br>
+        </template>
+      </div>
+    </div>
+
+  </div>
+
+</template>
+
+<script src="/bower_components/lokijs/src/lokijs.js"></script>
+<script src="/bower_components/jquery/dist/jquery.js"></script>
+<script src="boombox.js"> </script>
+
+<script>
+  Polymer({
+    is: 'x-search',
+
+    search: function(evt) {
+      var foo = this.$.is.value;
+
+      console.log(foo);
+      console.log(typeof foo);
+
+
+      ff = search(foo);
+      this.searchResult = ff;
+
+      console.log(ff);
+
+    },
+
+  });
+</script>
+
+</dom-module>

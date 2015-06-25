@@ -2,27 +2,29 @@
 <link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 
 
 <dom-module name="x-playlist">
   <template>
-    <link rel="stylesheet" href="playlist-item.css">
+    <div>
     <paper-menu>
-      <template is="dom-repeat" items="{{tape.songs}}">
+      <template is="dom-repeat" items="{{tape.media}}">
         <paper-item on-click="playSongHandler">
           <paper-body-item>
             <div>
               <iron-icon icon="chevron-right"></iron-icon>
-              <span class="artist">{{ item.artist }}</span> - <span class="title">{{ item.title }}</span> <span class="length">{{ item.length }}</span>
+              <span class="artist" style="font-size: 25px;">{{ item.artist }}</span> - <span class="title" style="font-size: 25px;">{{ item.title }}</span> Sources: <span>{{item.uris.length}}</span>
             </div>
             <div secondary>
-               <span class="location">{{ item.uri }}</span> <span class="type">{{ item.type }}</span>
+               <span class="location">{{ item.uri }}</span> <span class="type">{{ item.type }}</span>, <span>{{item.license}}</span>, <a href="{{ item.supportUri }}"><iron-icon icon="icons:favorite"></a></iron-icon>
             </div>
           </paper-body-item>
         </paper-item>
       </template>
     </paper-menu>
-
+  </div>
   </template>
 
   <script>
@@ -37,7 +39,7 @@
       playSongHandler: function(evt){
         var item = evt.model.item;
 
-        this.tape.songs.forEach(function(s){ s.active = false; });
+        this.tape.media.forEach(function(s){ s.active = false; });
         item.active = true;
 
         this.fire('play-media', item);

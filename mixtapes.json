@@ -1,76 +1,102 @@
 {
-  "tape1": {
+    "apiVersion": "0.1",
     "title": "sadfasdf",
+    "artwork" : "http://lorempixel.com/1000/1000",
+    "date" : "2015-02-01",
+    "publisher" : "lodsb.org",
     "description": "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "songs": [{
+    "media": [{
       "title": "Ukusadfsdsdaflele Song",
       "artist": "sadfsadfsdasda",
       "uri":"http://media.laridae.at/releases/laridae050/20-tek4.mp3",
-      "length": "04:22","type": "audio"
+      "length": "04:22","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     },{
       "title": "VIDEO",
       "artist": "Wing",
       "uri":"http://vjs.zencdn.net/v/oceans.mp4",
-      "length": "03:21","type": "video"
+      "length": "03:21","type": "video",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "Should be dead",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     },{
       "title": "Ukusadfsdsdaflele Song",
       "artist": "sadfsadfsdasda",
       "uri":"http://media.laridae.at/releases/laridae050/20-tek4.mp3",
-      "length": "04:22","type": "audio"
+      "length": "04:22","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     },{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
       "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ,{
       "title": "Should be dead",
       "artist": "Wing",
       "uri":"asd",
-      "length": "03:21","type": "audio"
+      "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
     }
     ]
-  }
 }

@@ -51,7 +51,6 @@
         */
         var nocache = new Date().getTime();
         var params = '{"cache":'+nocache+'}';
-        console.log(params);
 
         this.$.ajax.url = evt;
         this.$.ajax.params= params;

@@ -1,0 +1,152 @@
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-input/iron-input.html">
+
+<dom-module id="x-importer">
+
+  <template>
+
+      <style is="custom-style">
+      .list {
+        padding-top: 12px;
+        background-color: white;
+        display: inline-block;
+        width: 240px;
+        height: 228px;
+        margin: 12px;
+        @apply(--shadow-elevation-2dp);
+      }
+      .short {
+        padding-top: 12px;
+        height: 216px;
+      }
+      h4 {
+        margin-left: 24px;
+      }
+      .avatar {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #ccc;
+      }
+      .blue {
+        background-color: var(--paper-light-blue-300);
+      }
+      .red {
+        background-color: var(--paper-red-300);
+      }
+      .orange {
+        background-color: var(--paper-amber-300);
+      }
+      .green {
+        background-color: var(--paper-green-300);
+      }
+    </style>
+
+    <div>
+      <b>Import json</b>
+      <paper-menu selected="{{selectedIndex}}" id="menu">
+        <paper-item>mixtapes.json</paper-item>
+        <paper-item>mixtapes0.json</paper-item>
+      </paper-menu>
+      <span>[[selectedMessage]]</span>
+      <span>[[oldSelectedMessage]]</span>
+      <span>[[sel]]</span><br><br>
+      <b>My imports</b>
+      <paper-menu selected="{{importSelected}}" id="myImports">
+      </paper-menu>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: "x-importer",
+
+      created: function() {
+        this.items = ["/mixtapes.json", "/mixtapes0.json"];
+      },
+
+      ready: function(){
+        console.log("sdfklj");
+      },
+
+
+      properties: {
+        selectedIndex: {
+          type: Number,
+          value: 0,
+          observer: '_selectedIndexChanged'
+        },
+        toastmsg: {
+          type: String,
+          value: "",
+          notify: true,
+        },
+        update: {
+          type: Object,
+          notify: true,
+        }
+
+      },
+
+      _selectedIndexChanged: function(newIndex, oldIndex) {
+
+        if (typeof newIndex === 'number') {
+          this.selectedMessage = 'You selected item #' + newIndex + '.';
+        }
+        if (typeof oldIndex === 'number') {
+          this.oldSelectedMessage = 'Before, you had item #' + oldIndex + ' selected.';
+        }
+
+
+        this.sel = this.items[newIndex];
+
+        var that = this;
+
+        importJson(this.sel, function(jsonData){
+          //mix.json = jsonData;
+          console.log("123123");
+          console.log(jsonData);
+          that.update = jsonData;
+
+          that.showToastMessage("Imported "+that.sel+" : "+jsonData.title);
+
+
+        }, function(errorMessage) {
+          that.showToastMessage("Failed to import "+that.sel+"! Cause: "+errorMessage);
+        });
+
+        this.updateImportList(imports.data);
+
+      },
+
+      showToastMessage: function(message) {
+        this.toastmsg = message;
+      },
+
+      updateImportList: function(importData) {
+
+          var iDLength = importData.length;
+          var htmlString = "";
+
+
+          for(var i = 0; i < iDLength; i++) {
+            htmlString = htmlString + "<paper-icon-item><div class=\"avatar orange\" item-icon></div><div class=\"flex\"><div style=\"width:25%;\">"+importData[i].title+"</div> from: <span>"+importData[i].uri+"</span> type: <span>"+importData[i].type+"</span></div><paper-checkbox>crawl</paper-checkbox><paper-button raised style=\"background: red;\">remove</paper-button></paper-icon-item>";
+
+          }
+
+          this.$.myImports.innerHTML = htmlString;
+
+      }
+
+    });
+  </script>
+
+</dom-module>

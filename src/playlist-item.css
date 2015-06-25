@@ -3,6 +3,10 @@ paper-item {
   color:#999;
 }
 
+paper-item:hover {
+  color: #F00;
+}
+
 span.info {
   flex:1 1 auto;
 }

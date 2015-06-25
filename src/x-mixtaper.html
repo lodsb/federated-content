@@ -1,12 +1,11 @@
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../bower_components/iron-image/iron-image.html">
 
 <link rel="import" href="play-button.html">
-
 <link rel="import" href="x-playlist.html">
 
-<link rel="import" href="tape-service.html">
 <link rel="import" href="vee-dee-oh.html">
 <!--
 
@@ -56,7 +55,7 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
         id="slider" style="background: #DDF;"></paper-slider>
     </div>
 
-    <div>
+    <div style="margin: 100px;">
       <div class="header">
         <span class="mixtaper-title">{{loadedTape.title}}</span>
         <div class="mixtaper-description" style="margin: 20px;">{{loadedTape.description}}</div>
@@ -64,24 +63,24 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
 
       <div id="dummyvid"></div>
 
-      <div style="padding: 50px;">
-        <span style="font-size: 30px;">Playlist</span><br>
-        <x-playlist
-          id="playlist"
-          on-play-media="playListCLickHandler"></x-playlist>
+      <div>
+        <div style="float: left;">
+          <iron-image style="width:300px; height:300px; background-color: lightgray;" sizing="contain"
+          src="{{loadedTape.artwork}}"></iron-image>
+        </div>
+        <div style="float: right;">
+          <span style="font-size: 30px;">Playlist</span><br>
+          <x-playlist
+            id="playlist"
+            on-play-media="playListCLickHandler"></x-playlist>
+        </div>
       </div>
     </div>
-
-    <tape-service
-      tapeId="tape1"
-      tape="{{ tape }}"
-      id="service"
-      on-tape-loaded="tapeLoadedHandler"></tape-service>
 
     <audio
       id="audioElement"
       preload="auto"
-      src="{{ selectedSong.uri }}"></audio>
+      src="{{ audioUri }}"></audio>
 
 
   </template>
@@ -114,15 +113,20 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
         reflectToAttribute: true,
         notify: true
       },
-      uri: {
-        type: String,
+
+      json: {
+        type: Object,
         reflectToAttribute: true,
-        observer: "playlistUriObserver"
+        observer: "jsonObserver",
+        value: {}
       }
+
     },
 
-    playlistUriObserver: function(evt) {
-      this.$.service.tapeUri = evt;
+    jsonObserver: function(evt) {
+      console.log(evt);
+      this.loadedTape = evt;
+      this.$.playlist.tape = this.loadedTape;
     },
 
     /**
@@ -136,8 +140,6 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
 
       this.trackDuration = 0;
       this.trackElapsed = 0;
-
-      console.log(this.$.service.tapeUri);
 
       var audioElement = this.$.audioElement;
 
@@ -184,7 +186,7 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
           todo: correctly set type
         */
         var videoElement = document.createElement("vee-dee-oh");
-        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+media.uri+"\"></vee-dee-oh>";
+        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+media.uris[0].uri+"\"></vee-dee-oh>";
         that.$.dummyvid.appendChild(videoElement);
         videoElement.play();
 
@@ -240,7 +242,9 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
       };
 
       this.enableAudio = function(media) {
-        that.selectedSong = media;
+        console.log("MEDIAA");
+        console.log(media);
+        that.audioUri = media.uris[0].uri;
 
         that.pauseMedia = function() {
           audioElement.pause();
@@ -268,30 +272,16 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
 
     },
 
-    /**
-      Triggered when the data comes back from the API.
-      For now it simply starts playing the first song.
-
-      @method tapeLoadedHandler
-    */
-    tapeLoadedHandler: function(){
-      // starts playing the first song by default
-      //this.playSong(this.tape.songs[0]);
-      this.loadedTape = this.$.service.loadedTape;
-
-      this.$.playlist.tape = this.loadedTape;
-    },
-
     cueNextPlaylistItem: function() {
-      for(var i = 0; i < this.loadedTape.songs.length; i++){
-        if(this.loadedTape.songs[i] === this.selectedMedia){
+      for(var i = 0; i < this.loadedTape.media.length; i++){
+        if(this.loadedTape.media[i] === this.selectedMedia){
           break;
         }
       }
-        var next = (i === this.loadedTape.songs.length - 1) ? 0 : i+1;
+        var next = (i === this.loadedTape.media.length - 1) ? 0 : i+1;
         console.log("nex");
-        console.log(this.loadedTape.songs[next]);
-        this.changeMedia(this.loadedTape.songs[next]);
+        console.log(this.loadedTape.media[next]);
+        this.changeMedia(this.loadedTape.media[next]);
     },
 
     playButtonHandler: function(){
@@ -308,7 +298,7 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
       } else {
 
         if(typeof this.$.audioElement.attributes.src == 'undefined'){
-          this.changeMedia(this.loadedTape.songs[0]);
+          this.changeMedia(this.loadedTape.media[0]);
         }
 
         this.playMedia();

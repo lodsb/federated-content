@@ -1,0 +1,506 @@
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html" >
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html" >
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html" >
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html" >
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html" >
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/communication-icons.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-styles/paper-styles.html">
+
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-input/iron-input.html">
+
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<link rel="import" href="x-importer.html">
+<link rel="import" href="x-search.html">
+<link rel="import" href="x-playlist.html">
+
+<link rel="import" href="vee-dee-oh.html">
+
+<dom-module id="x-panel" >
+
+<style is="custom-style">
+
+
+    paper-toast {
+      right: 10px;
+      left: auto;
+    }
+
+</style>
+
+<template>
+      <paper-toast id="toast">{{toastMsg}}</paper-toast>
+
+    <link rel="stylesheet" href="x-mixtaper.css">
+  <paper-drawer-panel id="drawer">
+
+      <paper-header-panel drawer>
+        <paper-toolbar class="tall">
+          <div style="font-size: 40px;">boombox</div>
+          <div class="bottom flex" style="">federated content</div>
+        </paper-toolbar>
+
+        <div>
+          <paper-menu selected="{{selectedPage}}">
+            <paper-icon-item>
+              <iron-icon icon="icons:favorite" item-icon></iron-icon>
+              <paper-item-body two-line>
+                <div>About</div>
+                <div secondary>Manifesto...</div>
+              </paper-item-body>
+            </paper-icon-item>
+            <paper-icon-item>
+              <iron-icon icon="chevron-right" item-icon></iron-icon>
+              <paper-item-body two-line>
+                <div>Current Playlist</div>
+                <div secondary>play,...</div>
+              </paper-item-body>
+            </paper-icon-item>
+            <paper-icon-item>
+              <iron-icon icon="icons:add" item-icon></iron-icon>
+              <paper-item-body two-line>
+              <div>Manage Imports</div>
+              <div secondary>Personal</div>
+              </paper-item-body>
+            </paper-icon-item>
+          </paper-menu>
+          <div style="padding: 20px;">
+            <x-search></x-search>
+          </div>
+        </div>
+      </paper-header-panel>
+
+      <paper-header-panel main>
+        <paper-toolbar class="tall">
+          <paper-icon-button icon="menu" style="color: white;" on-click="togglePanel"></paper-icon-button>
+          <paper-icon-button icon="chevron-right" style="color: red;" on-click="playButtonHandler"></paper-icon-button>
+          <div class="flex"></div>
+
+          <div class="middle title">
+              <div>
+                <div style="float: left"><span>{{selectedMedia.artist}}</span> - <span>{{selectedMedia.title}}</span></div>
+                <div style="float: right;">
+                  <label for="duration">duration</label>
+                  <span id="mediaDuration"></span><br/>
+
+                  <label for="size">size</label>
+                  <span id="mediaSize"></span><br/>
+
+                  <label for="current-time">current time</label>
+                  <span id="mediaCurrentTime"></span>
+                  <span>{{videoUri}}</span><br>
+                </div>
+              </div>
+          </div>
+          <div class="bottom flex" style="height: 20px; background-color: #0f9d58;">
+            <paper-slider
+              min="0"
+              max="{{ trackDuration }}"
+              value="{{ trackElapsed }}"
+              id="slider" style="background: #DDF;"></paper-slider>
+          </div>
+        </paper-toolbar>
+        <div id="greetings" hidden="{{hidec1}}">Greetings!</div>
+        <div id="c2" hidden="{{hidec2}}">
+            <div style="margin: 100px;">
+              <div id="dummyvid"></div>
+
+              <div>
+                <div>
+                  <div style="float: left; width: 30%; height: 500px;">
+                    <iron-image style="width:300px; height:300px; background-color: lightgray;" sizing="contain"
+                    src="{{loadedTape.artwork}}"></iron-image>
+                  </div>
+                  <div style="float: right; width: 70%;">
+                    <div class="header">
+                      <span class="mixtaper-title">{{loadedTape.title}}</span> <span>{{loadedTape.date}}</span>
+                      <div class="mixtaper-description" style="margin: 20px;">{{loadedTape.description}}</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="width: 100%;">
+                  <x-playlist
+                    id="playlist"
+                    on-play-media="playListClickHandler"></x-playlist>
+                    <span>{{loadedTape.publisher}}</span>
+                </div>
+              </div>
+            </div>
+
+            <audio
+              id="audioElement"
+              preload="auto"
+              src="{{ audioUri }}"></audio>
+        </div>
+        <div id="c3" hidden="{{hidec3}}"><x-importer id="importer" toastmsg={{toast}} update={{importerUpdate}}></x-importer></div>
+        <div hidden="{{hidec4}}">ffDSFLSKDFLKSDFasdasdasdsasadsad</div>
+      </paper-header-panel>
+    </template>
+
+    </paper-drawer-panel>
+</template>
+</dom-module>
+
+
+<script>
+Polymer({
+    is: 'x-panel',
+
+    properties: {
+      selectedPage: {
+        type: Number,
+        value: 0,
+        observer: 'selectedPageChanged'
+      },
+      toast: {
+        type: String,
+        value: "",
+        observer: 'toastObserver'
+      },
+      importerUpdate: {
+        type: Object,
+        value: {},
+        observer: 'importerObserver'
+      },
+      audioFilesUrl: {
+        type: String,
+        reflect: true
+      },
+      playing: {
+        type: Boolean,
+        value: false
+      },
+      tape: {
+        type: Object,
+        reflectToAttribute: true
+      },
+      loadedTape: {
+        type: Object,
+        reflectToAttribute: true,
+        notify: true
+      },
+
+      json: {
+        type: Object,
+        reflectToAttribute: true,
+        observer: "jsonObserver",
+        value: {}
+      }
+
+    },
+
+    toastObserver: function(message) {
+      this.toastMsg = message;
+      this.$.toast.show();
+    },
+
+    importerObserver: function(json) {
+      console.log("imp os");
+      console.log(json);
+      this.jsonObserver(json);
+    },
+
+    hideAllPages: function() {
+      // TODO: inform how to properly reference properties
+      this.hidec1 = true;
+      this.hidec2 = true;
+      this.hidec3 = true;
+      this.hidec4 = true;
+    },
+
+    selectedPageChanged: function(newIndex, oldIndex) {
+      console.log(newIndex+" "+oldIndex);
+
+      this.hideAllPages();
+
+      switch(newIndex) {
+        case 0:
+            this.hidec1 = false;
+            break;
+        case 1:
+            this.hidec2 = false;
+            break;
+        case 2:
+            this.hidec3 = false;
+            break;
+      }
+
+    },
+
+    togglePanel: function() {
+      this.$.drawer.togglePanel();
+    },
+
+    jsonObserver: function(evt) {
+      console.log(evt);
+      console.log("####");
+      console.log(evt);
+      this.loadedTape = evt;
+      this.$.playlist.tape = this.loadedTape;
+    },
+
+    /**
+      Executes when everything is in its right place
+
+      @method ready
+    */
+    ready: function(){
+      console.log("xmix ready");
+
+      this.hideAllPages();
+      this.hidec1 = false;
+
+      var that = this;
+
+      this.trackDuration = 0;
+      this.trackElapsed = 0;
+
+      var audioElement = this.$.audioElement;
+
+      audioElement.addEventListener('canplay', function(){
+        var theAudio = this;
+
+        that.trackDuration = this.duration * 1000;
+        that.trackElapsed = this.currentTime;
+
+        that.$.mediaDuration.innerHTML = this.duration.toFixed(1) + ' s';
+
+        this.play();
+        that.playing = true;
+      });
+
+      audioElement.addEventListener('durationchange',
+        function() {
+          that.trackDuration = audioElement.duration * 1000;
+          that.$.mediaDuration.innerHTML = audioElement.duration.toFixed(1) + ' s';
+      });
+
+      // whenever it's playing, we want the slider moving!
+      /*
+      audioElement.addEventListener('playing', function(){
+
+      });*/
+
+      audioElement.addEventListener('ended', function(){
+        that.cueNextPlaylistItem();
+      });
+
+      audioElement.addEventListener('timeupdate',
+        function() {
+          that.trackElapsed = audioElement.currentTime * 1000
+          that.$.mediaCurrentTime.innerHTML = audioElement.currentTime.toFixed(1) + ' s';
+      });
+
+      this.$.slider.addEventListener('change', function(evt, d){
+        that.cueMediaPlayhead(this.value/1000.0);
+      });
+
+      this.enableVideo = function(media){
+        /*
+          todo: correctly set type
+        */
+        var videoElement = document.createElement("vee-dee-oh");
+        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+media.uris[0].uri+"\"></vee-dee-oh>";
+        that.$.dummyvid.appendChild(videoElement);
+        videoElement.play();
+
+
+        //that.$.dummyvid.innerHTML = "<vee-dee-oh id=\"videoElement\" autoplay><source type=\"video/mp4\"  src=\""+vuri+"\"></vee-dee-oh>";
+
+        console.log(that.$.dummyvid.innerHTML);
+
+        videoElement.addEventListener('click',
+          function() { if (videoElement.isPlaying()) { videoElement.pause(); that.playing = false;} else { videoElement.play(); that.playing=true;}
+        });
+
+        videoElement.addEventListener('durationchange',
+          function() {
+            that.trackDuration = videoElement.duration * 1000;
+            that.$.mediaDuration.innerHTML = videoElement.duration.toFixed(1) + ' s';
+        });
+
+        videoElement.addEventListener('loadedmetadata',
+          function() { that.$.mediaSize.innerHTML = [videoElement.videoWidth, videoElement.videoHeight].join('x') + ' px';
+        });
+
+        videoElement.addEventListener('timeupdate',
+          function() {
+            that.trackElapsed = videoElement.currentTime * 1000
+            that.$.mediaCurrentTime.innerHTML = videoElement.currentTime.toFixed(1) + ' s';
+        });
+
+
+        that.pauseMedia = function() {
+          videoElement.pause();
+          this.playing = false;
+        };
+
+        that.playMedia  = function() {
+          videoElement.play();
+          this.playing = true;
+        };
+
+        that.resetMediaPlayhead = function() {
+          videoElement.currentTime = 0;
+        }
+
+        that.cueMediaPlayhead = function(pos) {
+          videoElement.currentTime = pos;
+        }
+
+
+      };
+
+      this.disableVideo = function() {
+        that.$.dummyvid.innerHTML ="";
+      };
+
+      this.enableAudio = function(media) {
+        console.log("MEDIAA");
+        console.log(media);
+        that.audioUri = media.uris[0].uri;
+
+        that.pauseMedia = function() {
+          audioElement.pause();
+          this.playing = false;
+        };
+
+        that.playMedia  = function() {
+          audioElement.play();
+          this.playing = true;
+        };
+
+        that.resetMediaPlayhead = function() {
+          audioElement.currentTime = 0;
+        }
+
+        that.cueMediaPlayhead = function(pos) {
+          audioElement.currentTime = pos;
+        }
+
+      };
+
+      this.disableAudio = function(){
+        audioElement.pause()
+      };
+
+    },
+
+    cueNextPlaylistItem: function() {
+      for(var i = 0; i < this.loadedTape.media.length; i++){
+        if(this.loadedTape.media[i] === this.selectedMedia){
+          break;
+        }
+      }
+        var next = (i === this.loadedTape.media.length - 1) ? 0 : i+1;
+        console.log("nex");
+        console.log(this.loadedTape.media[next]);
+        this.changeMedia(this.loadedTape.media[next]);
+    },
+
+    playButtonHandler: function(){
+      console.log("busson");
+
+      if(this.playing && typeof this.loadedTape !== 'undefined') {
+        // then pause
+
+        this.pauseMedia();
+        /*
+        this.$.audioElement.pause();
+        clearRequestInterval(this.sliderUpdateInterval);
+        */
+
+      } else {
+
+        if(typeof this.$.audioElement.attributes.src == 'undefined'){
+          this.changeMedia(this.loadedTape.media[0]);
+        }
+
+        this.playMedia();
+
+      }
+
+    },
+
+    /**
+      Handling playlist clicks
+
+      @method playSongHandler
+    */
+    playListClickHandler: function(e, media){
+      if(media === this.selectedMedia){
+
+        this.resetMediaPlayhead();
+
+      } else {
+
+        this.changeMedia(media);
+
+      }
+
+    },
+
+    /**
+      Starts playing the selected song.
+
+      @method playSong
+    *//*
+    playSong: function(song){
+      this.playing = false;
+
+      if(this.selectedSong){
+        this.selectedSong.active = false;
+      }
+
+      song.active = true;
+
+      this.selectedSong = song;
+    },*/
+
+    changeMedia: function(media) {
+      this.playing = false;
+
+      if(this.selectedMedia){
+        this.selectedMedia.active = false;
+
+        if(this.selectedMedia.type == "video") {
+          this.disableVideo();
+        }
+
+        if(this.selectedMedia.type == "audio") {
+          this.disableAudio();
+        }
+      }
+
+      media.active = true;
+
+      this.selectedMedia = media;
+
+      if(this.selectedMedia.type == "video") {
+        this.enableVideo(media);
+      }
+
+      if(this.selectedMedia.type == "audio") {
+        this.enableAudio(media);
+      }
+
+      this.playMedia();
+
+    },
+
+ });
+</script>
