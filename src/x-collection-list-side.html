@@ -45,7 +45,7 @@
 
             var refHash = event.data.refHash;
 
-            var playListData = playlists.data;
+            var playListData = boombox.playlists.data;
             var pLLength = playListData.length;
 
             if(jQuery.inArray(refHash, that.refHashes)) {
@@ -54,7 +54,7 @@
               that.refHashes.push(refHash);
 
               var ch = document.createElement("paper-item");
-              ch.innerHTML = playlistByHash(refHash).title;
+              ch.innerHTML = boombox.playlistByHash(refHash).title;
               Polymer.dom(template).appendChild(ch);
 
               Polymer.dom.flush();
@@ -63,7 +63,7 @@
           }
 
           if(event.type == "init") {
-            var playListData = playlists.data;
+            var playListData = boombox.playlists.data;
             var pLLength = playListData.length;
 
             var template = that.$.menu;
@@ -82,10 +82,10 @@
           }
         }
 
-        importEvents.addListener(importEventHandler);
+        boombox.importEvents.addListener(importEventHandler);
 
         // load data from db if exists
-        populateDBData();
+        boombox.populateDBData();
 
       },
 

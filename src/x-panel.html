@@ -294,7 +294,7 @@ Polymer({
     },
 
     selectedPlaylistObserver: function(refHash) {
-      var playlist = playlistByHash(refHash);
+      var playlist = boombox.playlistByHash(refHash);
       if(playlist) {
         this.loadedTape = playlist;
         this.$.playlist.tape = this.loadedTape;
@@ -368,7 +368,7 @@ Polymer({
           todo: correctly set type
         */
         var videoElement = document.createElement("vee-dee-oh");
-        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+chooseMediaUri(media)+"\"></vee-dee-oh>";
+        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+boombox.chooseMediaUri(media)+"\"></vee-dee-oh>";
         that.$.dummyvid.appendChild(videoElement);
         videoElement.play();
 
@@ -430,7 +430,7 @@ Polymer({
       this.enableAudio = function(media) {
         console.log("MEDIAA");
         console.log(media);
-        that.audioUri = chooseMediaUri(media);
+        that.audioUri = boombox.chooseMediaUri(media);
 
         that.pauseMedia = function() {
           audioElement.pause();

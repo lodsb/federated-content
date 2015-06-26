@@ -99,23 +99,23 @@
         var that = this;
         var importEventHandler = function(event) {
           if(event.type == "update") {
-            that.updateImportList(imports.data);
+            that.updateImportList(boombox.imports.data);
           }
 
           if(event.type == "init"){
-            that.updateImportList(imports.data);
+            that.updateImportList(boombox.imports.data);
           }
         }
 
-        importEvents.addListener(importEventHandler);
+        boombox.importEvents.addListener(importEventHandler);
 
         // load data from db if exists
-        populateDBData();
+        boombox.populateDBData();
 
       },
 
       savedb: function(){
-        saveDB()
+        boombox.saveDB()
       },
 
       properties: {
@@ -140,7 +140,7 @@
 
         var location = this.$.importUrlInput.value;
 
-        importJson(location, function(jsonData){
+        boombox.importJson(location, function(jsonData){
           //mix.json = jsonData;
           console.log("import URL");
           console.log(jsonData);
@@ -163,7 +163,7 @@
 
         var that = this;
 
-        importJson(this.sel, function(jsonData){
+        boombox.importJson(this.sel, function(jsonData){
           //mix.json = jsonData;
           console.log("123123");
           console.log(jsonData);
