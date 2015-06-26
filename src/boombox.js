@@ -230,8 +230,10 @@
 
         jQuery.ajax({
           url: url,
+          //dataType: 'jsonp' CORS?!
         })
         .done(function(jsonString) {
+          console.log("!!!");
           var data = jQuery.parseJSON(jsonString);
 
           var importHash = uniqueAddToDB(data, jsonString);
@@ -252,7 +254,14 @@
 
         })
         .fail(function() {
-          failedFunc(jQuery.error());
+          var msg = "";
+          try{
+            jQuery.error();
+          } catch(e) {
+            msg = e.msg;
+          }
+
+          failedFunc(msg);
           console.log("failed ajax json request");
         });
 
@@ -268,3 +277,50 @@
       });
 
     });
+
+    function createCORSRequest(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+    // XHR for Chrome/Firefox/Opera/Safari.
+    xhr.open(method, url, true);
+  } else if (typeof XDomainRequest != "undefined") {
+    // XDomainRequest for IE.
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+  } else {
+    // CORS not supported.
+    xhr = null;
+  }
+  return xhr;
+}
+
+// Helper method to parse the title tag from the response.
+function getTitle(text) {
+  return text.match('<title>(.*)?</title>')[1];
+}
+
+// Make the actual CORS request.
+function makeCorsRequest() {
+  // All HTML5 Rocks properties support CORS.
+  var url = 'http://lodsb.org';
+  url = "https://drive.google.com/uc?export=download&id=0B28GGAWFNg-3aWNCeGNrSnJ0Q2M";
+  //https://drive.google.com/file/d/0B28GGAWFNg-3aWNCeGNrSnJ0Q2M/view?usp=sharing
+
+  var xhr = createCORSRequest('GET', url);
+  if (!xhr) {
+    console.log('CORS not supported');
+    return;
+  }
+  // Response handlers.
+  xhr.onload = function() {
+    var text = xhr.responseText;
+    var title = getTitle(text);
+    console.log('Response from CORS request to ' + url + ': ' + title);
+  };
+
+  xhr.onerror = function() {
+    console.log('Woops, there was an error making the request.');
+  };
+
+  xhr.send();
+}

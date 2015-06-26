@@ -5,6 +5,7 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 
 <dom-module id="x-importer">
 
@@ -55,22 +56,31 @@
         <paper-item>mixtapes.json</paper-item>
         <paper-item>mixtapes0.json</paper-item>
       </paper-menu>
+      <paper-input id="importUrlInput" label="Enter URL and hit RETURN to import" on-change="importUrl"></paper-input>
       <span>[[sel]]</span><br><br>
       <b>My imports</b>
       <paper-menu selected="{{importSelected}}" id="myImports">
       </paper-menu>
-      <b> Create new playlist </b>
-      <paper-menu>
-        <paper-item> Drop files </paper-item>
-        <paper-item> Create Reflist</paper-item>
-      </paper-menu>
-      <b> Share list </b>
-      <paper-menu>
-        <paper-item> Upload (Dropbox, Drive, own server) </paper-item>
-        <paper-item> link social </paper-item>
-      </paper-menu>
-      <div style="margin=200px; text-align: center;">
-        <paper-button on-click="savedb" style="background: red;">SAVE DATABASE</paper-button>
+      <div style="padding-top: 100px;">
+        <b>Debug</b><br>
+        <div style="text-align: center;">
+          <paper-button on-click="savedb" style="background: red;">SAVE DATABASE</paper-button>
+        </div>
+      </div>
+      <div style="padding-top: 100px;">
+        <b>Unimpl</b><br><br><br><br>
+        <div style="background: #CCC;">
+          <b> Create new playlist </b>
+          <paper-menu>
+            <paper-item> Drop files </paper-item>
+            <paper-item> Create Reflist</paper-item>
+          </paper-menu>
+          <b> Share list </b>
+          <paper-menu>
+            <paper-item> Upload (Dropbox, Drive, own server) </paper-item>
+            <paper-item> link social </paper-item>
+          </paper-menu>
+        </div>
       </div>
     </div>
 
@@ -101,7 +111,7 @@
 
         // load data from db if exists
         populateDBData();
-        
+
       },
 
       savedb: function(){
@@ -123,6 +133,27 @@
           notify: true,
         }
 
+      },
+
+      importUrl: function(evt) {
+        var that = this;
+
+        var location = this.$.importUrlInput.value;
+
+        importJson(location, function(jsonData){
+          //mix.json = jsonData;
+          console.log("import URL");
+          console.log(jsonData);
+          that.update = jsonData;
+
+          that.showToastMessage("Imported "+that.sel+" : "+jsonData.title);
+
+
+        }, function(errorMessage) {
+          that.showToastMessage("Failed to import "+that.sel+"! Cause: "+errorMessage);
+        });
+
+        this.$.importUrlInput.value = "";
       },
 
       _selectedIndexChanged: function(newIndex, oldIndex) {
