@@ -3,7 +3,7 @@
 
 // "API"
 var boombox = {};
-
+boombox.debug_loadDB = true;
 
 // "Setup"
 
@@ -19,7 +19,11 @@ function loadHandler() {
   // init loki db
   boombox.playlists = ___db.getCollection('playlists');
 
-  if(boombox.playlists === "null") {
+  console.log("SDF");
+  console.log((boombox.debug_loadDB===true) || (boombox.playlists === "null"));
+
+  if((boombox.debug_loadDB===false) || (boombox.playlists === "null") ) {
+    console.log("creating db");
     boombox.playlists = ___db.addCollection('playlists');
     boombox.media = ___db.addCollection('media');
     boombox.imports = ___db.addCollection('imports');
@@ -304,6 +308,8 @@ boombox._jsonExceptionLadder = function(url, func, failedFunc){
   run();
 
 };
+
+//
 
 
 boombox.importJson = function(url, func, failedFunc) {
