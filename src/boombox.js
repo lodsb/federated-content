@@ -290,7 +290,7 @@ boombox._yql = function(url, func, failedFunc, nextTry) {
     });
 };
 
-// exception ladder for json loading using different approaches/services
+// "exception" ladder for json loading using different approaches/services
 boombox._jsonExceptionLadder = function(url, func, failedFunc){
   var ladder = [boombox._ajax, boombox._yql, null];
   var idx = 0;
