@@ -18,6 +18,7 @@
     @apply(--layout-vertical);
     background: rgb(205, 23, 67);
     width: 100%;
+    padding-top: 10px;
   }
 
   .mediaDescription {
@@ -29,6 +30,7 @@
 
   .artistTitle {
     @apply(--layout-flex);
+    margin-left: 10px;
   }
 
   .info {
@@ -56,7 +58,7 @@
 
   <template>
       <paper-item>
-          <div class="playlistEntry">
+          <div class="playlistEntry" id="fucker">
             <div class="mediaDescription">
               <paper-fab on-click="play" icon={{icon}} title="play" tabindex="0" class="green"></paper-fab>
               <div class="artistTitle">
@@ -80,7 +82,7 @@
                   <div class="info">
                     <span>{{item.license}}</span>,
                   </div>
-                  <div class="info">
+                  <div class="info"> Support:
                     <a href="{{ item.supportUri }}">
                       <iron-icon icon="icons:favorite"></iron-icon>
                     </a>
@@ -113,7 +115,7 @@
         this.icon = "av:play-arrow";
       },
 
-      play: function(){
+      play: function(){        
         this.fire("play");
       },
 

@@ -9,7 +9,7 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-icons/av-icons.html">
 <link rel="import" href="../bower_components/iron-icons/communication-icons.html">
-<link rel="import" href="../bower_components/iron-image/communication-image.html">
+<link rel="import" href="../bower_components/iron-image/iron-image.html">
 
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
@@ -129,9 +129,11 @@
       <paper-header-panel main>
         <paper-toolbar class="tall">
           <paper-icon-button icon="menu" style="color: white;" on-click="togglePanel"></paper-icon-button>
-          <paper-fab icon="av:play-arrow" on-click="playButtonHandler"></paper-fab>
-          <paper-fab icon="chevron-left"  on-click="prevButtonHandler" mini></paper-fab>
-          <paper-fab icon="chevron-right" on-click="nextButtonHandler" mini></paper-fab>
+          <paper-fab icon="{{headerPlayButtonIcon}}" on-click="playButtonHandler"></paper-fab>
+          <div style="margin-left: 15px">
+            <paper-fab icon="chevron-left"  on-click="prevButtonHandler" mini></paper-fab>
+            <paper-fab icon="chevron-right" on-click="nextButtonHandler" mini></paper-fab>
+          </div>
 
           <div class="middle title">
               <div style="margin-top: 30px;">
@@ -159,7 +161,15 @@
         </paper-toolbar>
         <div class="contentPage">
           <div class="mainContent">
-            <div id="greetings" hidden="{{hidec1}}">Greetings!</div>
+            <div id="greetings" hidden="{{hidec1}}">
+              Greetings!<br/>
+                <ol>
+                <li> <== click on manage imports</li>
+                <li> click on the two jsons, playlists should appear ==> </li>
+                <li> click on the playlist (sdf...), you may have to switch back and forth (focus problem) </li>
+                </ol>
+
+            </div>
             <div id="c2" hidden="{{hidec2}}"><x-importer id="importer" toastmsg={{toast}}></x-importer></div>
             <div id="c3" hidden="{{hidec3}}">
                 <div style="margin: 0px;">
@@ -302,8 +312,11 @@ Polymer({
     ready: function(){
       console.log("xmix ready");
 
+      // ui stuff
       this.hideAllPages();
       this.hidec1 = false;
+      this.headerPlayButtonIcon = "av:play-arrow";
+
 
       var that = this;
 
@@ -355,7 +368,7 @@ Polymer({
           todo: correctly set type
         */
         var videoElement = document.createElement("vee-dee-oh");
-        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+media.uris[0].uri+"\"></vee-dee-oh>";
+        videoElement.innerHTML = "<source type=\"video/mp4\"  src=\""+chooseMediaUri(media)+"\"></vee-dee-oh>";
         that.$.dummyvid.appendChild(videoElement);
         videoElement.play();
 
@@ -364,8 +377,9 @@ Polymer({
 
         console.log(that.$.dummyvid.innerHTML);
 
+        // source of bugs because of ref, external function which may also be used by audio element at the time?
         videoElement.addEventListener('click',
-          function() { if (videoElement.isPlaying()) { videoElement.pause(); that.playing = false;} else { videoElement.play(); that.playing=true;}
+          function() { if (videoElement.isPlaying()) { that.pauseMedia(); } else { that.playMedia(); }
         });
 
         videoElement.addEventListener('durationchange',
@@ -388,11 +402,15 @@ Polymer({
         that.pauseMedia = function() {
           videoElement.pause();
           this.playing = false;
+
+          that.updatePlaybuttonStates(false);
         };
 
         that.playMedia  = function() {
           videoElement.play();
           this.playing = true;
+
+          that.updatePlaybuttonStates(true);
         };
 
         that.resetMediaPlayhead = function() {
@@ -403,7 +421,6 @@ Polymer({
           videoElement.currentTime = pos;
         }
 
-
       };
 
       this.disableVideo = function() {
@@ -413,16 +430,20 @@ Polymer({
       this.enableAudio = function(media) {
         console.log("MEDIAA");
         console.log(media);
-        that.audioUri = media.uris[0].uri;
+        that.audioUri = chooseMediaUri(media);
 
         that.pauseMedia = function() {
           audioElement.pause();
           this.playing = false;
+
+          that.updatePlaybuttonStates(false);
         };
 
         that.playMedia  = function() {
           audioElement.play();
           this.playing = true;
+
+          that.updatePlaybuttonStates(true);
         };
 
         that.resetMediaPlayhead = function() {
@@ -442,27 +463,31 @@ Polymer({
     },
 
     cueNextPlaylistItem: function() {
-      for(var i = 0; i < this.loadedTape.media.length; i++){
-        if(this.loadedTape.media[i] === this.selectedMedia){
-          break;
+      if(this.loadedTape.media) {
+        for(var i = 0; i < this.loadedTape.media.length; i++){
+          if(this.loadedTape.media[i] === this.selectedMedia){
+            break;
+          }
         }
+          var next = (i === this.loadedTape.media.length - 1) ? 0 : i+1;
+          console.log("nex");
+          console.log(this.loadedTape.media[next]);
+          this.changeMedia(this.loadedTape.media[next]);
       }
-        var next = (i === this.loadedTape.media.length - 1) ? 0 : i+1;
-        console.log("nex");
-        console.log(this.loadedTape.media[next]);
-        this.changeMedia(this.loadedTape.media[next]);
     },
 
     cuePrevPlaylistItem: function() {
-      for(var i = 0; i < this.loadedTape.media.length; i++){
-        if(this.loadedTape.media[i] === this.selectedMedia){
-          break;
+      if(this.loadedTape.media) {
+        for(var i = 0; i < this.loadedTape.media.length; i++){
+          if(this.loadedTape.media[i] === this.selectedMedia){
+            break;
+          }
         }
+          var next = (i === this.loadedTape.media.length - 1) ? this.loadedTape.media.length - 1 : i-1;
+          console.log("prev");
+          console.log(this.loadedTape.media[next]);
+          this.changeMedia(this.loadedTape.media[next]);
       }
-        var next = (i === this.loadedTape.media.length - 1) ? this.loadedTape.media.length - 1 : i-1;
-        console.log("prev");
-        console.log(this.loadedTape.media[next]);
-        this.changeMedia(this.loadedTape.media[next]);
     },
 
     nextButtonHandler: function(){
@@ -471,6 +496,16 @@ Polymer({
 
     prevButtonHandler: function(){
       this.cuePrevPlaylistItem();
+    },
+    // shoud be changed for a message buss lateron
+    updatePlaybuttonStates: function(playing){
+      // set to pause symbols etc
+      if(playing) {
+        this.headerPlayButtonIcon = "av:pause";
+      } else {
+        this.headerPlayButtonIcon = "av:play-arrow";
+      }
+
     },
 
     playButtonHandler: function(){
@@ -488,10 +523,17 @@ Polymer({
       } else {
 
         if(typeof this.$.audioElement.attributes.src == 'undefined'){
-          this.changeMedia(this.loadedTape.media[0]);
-        }
+          if(this.loadedTape.media) {
+            var media = this.loadedTape.media[0];
 
-        this.playMedia();
+            this.changeMedia(this.loadedTape.media[0]);
+          }
+
+        } else {
+
+          this.playMedia();
+
+        }
 
       }
 
@@ -533,33 +575,35 @@ Polymer({
     },*/
 
     changeMedia: function(media) {
-      this.playing = false;
+      if(media) {
+        this.playing = false;
 
-      if(this.selectedMedia){
-        this.selectedMedia.active = false;
+        if(this.selectedMedia){
+          this.selectedMedia.active = false;
+
+          if(this.selectedMedia.type == "video") {
+            this.disableVideo();
+          }
+
+          if(this.selectedMedia.type == "audio") {
+            this.disableAudio();
+          }
+        }
+
+        media.active = true;
+
+        this.selectedMedia = media;
 
         if(this.selectedMedia.type == "video") {
-          this.disableVideo();
+          this.enableVideo(media);
         }
 
         if(this.selectedMedia.type == "audio") {
-          this.disableAudio();
+          this.enableAudio(media);
         }
+
+        this.playMedia();
       }
-
-      media.active = true;
-
-      this.selectedMedia = media;
-
-      if(this.selectedMedia.type == "video") {
-        this.enableVideo(media);
-      }
-
-      if(this.selectedMedia.type == "audio") {
-        this.enableAudio(media);
-      }
-
-      this.playMedia();
 
     },
 

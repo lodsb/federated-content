@@ -55,8 +55,6 @@
         <paper-item>mixtapes.json</paper-item>
         <paper-item>mixtapes0.json</paper-item>
       </paper-menu>
-      <span>[[selectedMessage]]</span>
-      <span>[[oldSelectedMessage]]</span>
       <span>[[sel]]</span><br><br>
       <b>My imports</b>
       <paper-menu selected="{{importSelected}}" id="myImports">
@@ -71,6 +69,9 @@
         <paper-item> Upload (Dropbox, Drive, own server) </paper-item>
         <paper-item> link social </paper-item>
       </paper-menu>
+      <div style="margin=200px; text-align: center;">
+        <paper-button on-click="savedb" style="background: red;">SAVE DATABASE</paper-button>
+      </div>
     </div>
 
   </template>
@@ -84,24 +85,32 @@
       },
 
       ready: function(){
-        console.log("sdfklj");
-
         // register event handlers
         var that = this;
         var importEventHandler = function(event) {
           if(event.type == "update") {
             that.updateImportList(imports.data);
           }
+
+          if(event.type == "init"){
+            that.updateImportList(imports.data);
+          }
         }
 
         importEvents.addListener(importEventHandler);
+
+        // load data from db if exists
+        populateDBData();
+        
       },
 
+      savedb: function(){
+        saveDB()
+      },
 
       properties: {
         selectedIndex: {
           type: Number,
-          value: 0,
           observer: '_selectedIndexChanged'
         },
         toastmsg: {
@@ -117,13 +126,6 @@
       },
 
       _selectedIndexChanged: function(newIndex, oldIndex) {
-
-        if (typeof newIndex === 'number') {
-          this.selectedMessage = 'You selected item #' + newIndex + '.';
-        }
-        if (typeof oldIndex === 'number') {
-          this.oldSelectedMessage = 'Before, you had item #' + oldIndex + ' selected.';
-        }
 
 
         this.sel = this.items[newIndex];

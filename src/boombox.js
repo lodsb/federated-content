@@ -1,15 +1,51 @@
 
     //TODO export playlist from media sources
 
-    var db = new loki('main.json');
+    var playlists = {};
+    var media = {};
+    var imports = {};
 
-    var playlists = db.addCollection('playlists');
-    var media = db.addCollection('media');
-    var imports = db.addCollection('imports');
+    var db = new loki('boombox_data.json',
+      {
+        autoload: true,
+        autoloadCallback : loadHandler,
+        autosave: true,
+        autosaveInterval: 10000,
+      });
 
-    playlists.ensureUniqueIndex('hash');
-    media.ensureUniqueIndex('hash');
-    imports.ensureUniqueIndex('uri');
+    function saveDB() {
+      db.saveDatabase();
+    }
+
+    function loadHandler() {
+      // init loki db
+      playlists = db.getCollection('playlists');
+
+      if (playlists === null) {
+        playlists = db.addCollection('playlists');
+        media = db.addCollection('media');
+        imports = db.addCollection('imports');
+
+        playlists.ensureUniqueIndex('hash');
+        media.ensureUniqueIndex('hash');
+        imports.ensureUniqueIndex('uri');
+      } else {
+        media = db.getCollection('media');
+        imports = db.getCollection('imports');
+
+        playlists.ensureUniqueIndex('hash');
+        media.ensureUniqueIndex('hash');
+        imports.ensureUniqueIndex('uri');
+      }
+    }
+
+    function populateDBData() {
+      iData = imports.data;
+
+      if(iData.length > 0) {
+        importEvents.fire(constructEvent("init", iData));
+      }
+    }
 
     function createEventHandler() {
       var handler = {};
@@ -54,6 +90,13 @@
       return result;
     }
 
+    function chooseMediaUri(media) {
+      // should check media availability and randomly select one
+      // send toast on error
+      console.log(media);
+      return media.uris[0].uri;
+    }
+
 
     /*TODO: check media avail, random avail media url load, score media url?
       latency, throughput?
@@ -96,6 +139,8 @@
 
         var modifiedMediaItems = [];
 
+        var playlistMediaItemHashes = [];
+
         itemsLength = mediaItems.length;
         for(var mi = 0; mi < itemsLength; mi ++) {
           var mediaItem = mediaItems[mi];
@@ -122,8 +167,6 @@
 
             media.insert(mediaItem);
 
-            modifiedMediaItems.push(mediaItem);
-
           }
           // else add entry to uris if it doesn exist
           else {
@@ -148,12 +191,21 @@
               newUriEntry.status= "unchecked";
 
               existingMediaItem.uris = existingMediaItem.uris.concat([newUriEntry]);
-
-              modifiedMediaItems.push(existingMediaItem);
             }
-
           }
 
+          // add media if it isnt already in the playlist
+          if(! (jQuery.inArray(mediaItemHash,playlistMediaItemHashes) > 0) ) {
+              if(existingMediaItem) {
+                modifiedMediaItems.push(existingMediaItem);
+              } else {
+                modifiedMediaItems.push(mediaItem);
+              }
+          }
+
+          console.log(modifiedMediaItems);
+
+          playlistMediaItemHashes.push(mediaItemHash);
 
         }
 

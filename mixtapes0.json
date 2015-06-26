@@ -8,21 +8,14 @@
     "media": [{
       "title": "Ukusadfsdsdaflele Song",
       "artist": "sadfsadfsdasda",
-      "uri":"http://media.laridae.at/releases/laridae050/20-tek4.mp3",
+      "uri":"http://media.laridae.at/relxcvbeases/laridae050/20-tek4.mp3",
       "length": "04:22","type": "audio",
-      "license" : "CC-SA-NC-3.0",
-      "supportUri" : "http://xxx.org"
-    },{
-      "title": "VIDEO",
-      "artist": "Wing",
-      "uri":"http://vjs.zencdn.net/v/oceans.mp4",
-      "length": "03:21","type": "video",
       "license" : "CC-SA-NC-3.0",
       "supportUri" : "http://xxx.org"
     },{
       "title": "I Dreameasdfsadsfadd a Dream",
       "artist": "Wing",
-      "uri":"http://media.laridae.at/releases/laridae050/02-soap.mp3",
+      "uri":"http://media.laridae.at/relexcvbases/laridae050/02-soap.mp3",
       "length": "03:21","type": "audio",
       "license" : "CC-SA-NC-3.0",
       "supportUri" : "http://xxx.org"
@@ -32,6 +25,13 @@
       "artist": "Wing",
       "uri":"asd",
       "length": "03:21","type": "audio",
+      "license" : "CC-SA-NC-3.0",
+      "supportUri" : "http://xxx.org"
+    },{
+      "title": "VIDEO",
+      "artist": "Wing",
+      "uri":"http://vjs.zencdn.net/v/oceans.mp4",
+      "length": "03:21","type": "video",
       "license" : "CC-SA-NC-3.0",
       "supportUri" : "http://xxx.org"
     }

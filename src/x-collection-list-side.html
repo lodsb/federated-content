@@ -61,9 +61,31 @@
             }
 
           }
+
+          if(event.type == "init") {
+            var playListData = playlists.data;
+            var pLLength = playListData.length;
+
+            var template = that.$.menu;
+
+            for(var i = 0; i < pLLength; i++)  {
+              var pl = playListData[i];
+
+              that.refHashes.push(pl.hash);
+
+              var ch = document.createElement("paper-item");
+              ch.innerHTML = pl.title;
+              Polymer.dom(template).appendChild(ch);
+              Polymer.dom.flush();
+              console.log("sdf");
+            }
+          }
         }
 
         importEvents.addListener(importEventHandler);
+
+        // load data from db if exists
+        populateDBData();
 
       },
 
