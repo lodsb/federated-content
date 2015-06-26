@@ -230,6 +230,7 @@
 
         jQuery.ajax({
           url: url,
+          dataType: "text"
           //dataType: 'jsonp' CORS?!
         })
         .done(function(jsonString) {
