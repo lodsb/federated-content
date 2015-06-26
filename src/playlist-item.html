@@ -3,14 +3,92 @@
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link href="../bower_components/iron-icons/iron-icons.html" rel="import">
 
-<dom-module id="playlist-item">
-  <template>
-    <link rel="stylesheet" href="playlist-item.css">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+
+<dom-module id="playlist-item">
+
+<style is="custom-style">
+
+  .playlistEntry {
+    @apply(--layout-vertical);
+    background: rgb(205, 23, 67);
+    width: 100%;
+  }
+
+  .mediaDescription {
+    @apply(--layout-horizontal);
+    @apply(--layout-center);
+    background: rgb(205, 23, 67);
+    width: 100%;
+  }
+
+  .artistTitle {
+    @apply(--layout-flex);
+  }
+
+  .info {
+    @apply(--layout-flex);
+  }
+
+  paper-fab.blue {
+    --paper-fab-background: var(--paper-light-blue-500);
+    --paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+  }
+  paper-fab.red {
+    --paper-fab-background: var(--paper-red-500);
+    --paper-fab-keyboard-focus-background: var(--paper-red-900);
+  }
+  paper-fab.green {
+    --paper-fab-background: var(--paper-green-500);
+    --paper-fab-keyboard-focus-background: var(--paper-green-900);
+  }
+  paper-fab.orange {
+    --paper-fab-background: var(--paper-orange-500);
+    --paper-fab-keyboard-focus-background: var(--paper-orange-900);
+  }
+
+</style>
+
+  <template>
       <paper-item>
-          <iron-icon icon="chevron-right"></iron-icon>
-          <div><span class="artist">{{ song.artist }}</span> - <span class="title">{{ song.title }}</span></div>
-          <div>{{ song.length }}</div>
+          <div class="playlistEntry">
+            <div class="mediaDescription">
+              <paper-fab on-click="play" icon={{icon}} title="play" tabindex="0" class="green"></paper-fab>
+              <div class="artistTitle">
+                <span class="artist" style="font-size: 25px;">{{ item.artist }}</span> - <span class="title" style="font-size: 25px;">{{ item.title }}</span>
+              </div>
+              <paper-fab on-click="toggleCollapse" mini icon="info" title="info" tabindex="0" class="blue"></paper-fab>
+            </div>
+            <div>
+              <iron-collapse id="collapse">
+                <div class="mediaDescription">
+                  <div class="info">
+                    Sources availability:
+                    <span>{{item.uris.length}}</span>
+                  </div>
+                  <div class="info">
+                    <span class="location">{{ item.uri }}</span>
+                  </div>
+                  <div class="info">
+                    <span class="type">{{ item.type }}</span>,
+                  </div>
+                  <div class="info">
+                    <span>{{item.license}}</span>,
+                  </div>
+                  <div class="info">
+                    <a href="{{ item.supportUri }}">
+                      <iron-icon icon="icons:favorite"></iron-icon>
+                    </a>
+                  </div>
+                </div>
+              </iron-collapse>
+            </div>
+          </div>
       </paper-item>
 
 
@@ -29,7 +107,21 @@
           type: Boolean,
           reflectToAttribute: true
         }
+      },
+
+      ready: function(){
+        this.icon = "av:play-arrow";
+      },
+
+      play: function(){
+        this.fire("play");
+      },
+
+      toggleCollapse: function(){
+        console.log("collapse");
+        this.$.collapse.toggle();
       }
+
     });
   </script>
 </dom-module>

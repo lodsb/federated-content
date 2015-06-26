@@ -61,6 +61,16 @@
       <b>My imports</b>
       <paper-menu selected="{{importSelected}}" id="myImports">
       </paper-menu>
+      <b> Create new playlist </b>
+      <paper-menu>
+        <paper-item> Drop files </paper-item>
+        <paper-item> Create Reflist</paper-item>
+      </paper-menu>
+      <b> Share list </b>
+      <paper-menu>
+        <paper-item> Upload (Dropbox, Drive, own server) </paper-item>
+        <paper-item> link social </paper-item>
+      </paper-menu>
     </div>
 
   </template>
@@ -75,6 +85,16 @@
 
       ready: function(){
         console.log("sdfklj");
+
+        // register event handlers
+        var that = this;
+        var importEventHandler = function(event) {
+          if(event.type == "update") {
+            that.updateImportList(imports.data);
+          }
+        }
+
+        importEvents.addListener(importEventHandler);
       },
 
 
@@ -122,8 +142,6 @@
         }, function(errorMessage) {
           that.showToastMessage("Failed to import "+that.sel+"! Cause: "+errorMessage);
         });
-
-        this.updateImportList(imports.data);
 
       },
 

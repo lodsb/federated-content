@@ -11,6 +11,32 @@
     media.ensureUniqueIndex('hash');
     imports.ensureUniqueIndex('uri');
 
+    function createEventHandler() {
+      var handler = {};
+
+      handler._listeners = [];
+
+      handler.fire = function(event) {
+        var length = handler._listeners.length;
+
+        for(var i = 0; i < length; i++) {
+          handler._listeners[i](event);
+        }
+      };
+
+      handler.addListener = function(myFunction){
+        handler._listeners.push(myFunction);
+      };
+
+      return handler;
+    }
+
+    function constructEvent(typeName, data) {
+      return {'type': typeName, 'data': data};
+    }
+
+    var importEvents = createEventHandler();
+
     function search(query) {
       //TODO: make search case insensitive!
       // wasting cycles
@@ -35,19 +61,13 @@
 
     function stringHash(string){
     	var hash = 0;
-    	if (string.length == 0) return hash;
+    	if (string.length === 0) return hash;
     	for (i = 0; i < string.length; i++) {
     		char = string.charCodeAt(i);
     		hash = ((hash<<5)-hash)+char;
     		hash = hash & hash; // Convert to 32bit integer
     	}
     	return hash;
-    }
-
-    function hashJson(json) {
-      var jsonString = JSON.stringify(jsonString);
-
-      console.log(jsonString);
     }
 
     function mediaHash(mediaJson) {
@@ -143,6 +163,12 @@
         playlists.insert(data);
 
       }
+
+      return playlistHash;
+    }
+
+    function playlistByHash(hash) {
+      return playlists.by('hash', hash);
     }
 
     function importJson(url, func, failedFunc) {
@@ -156,22 +182,27 @@
         .done(function(jsonString) {
           var data = jQuery.parseJSON(jsonString);
 
-          uniqueAddToDB(data, jsonString);
+          var importHash = uniqueAddToDB(data, jsonString);
 
-          imports.insert({
+          var importDescriptor = {
             'title': data.title, // shold also have a root directory indicator + colors for my imports list
             'uri'  : url,
             'crawl': false, // should lateron be used to retrigger crawling references
-            'type' : 'playlist' // playlist or bucket
-          });
+            'type' : 'playlist', // playlist or bucket
+            'refHash' : importHash
+          };
+
+          imports.insert(importDescriptor);
 
           func(data);
+
+          importEvents.fire(constructEvent("update", importDescriptor));
 
         })
         .fail(function() {
           failedFunc(jQuery.error());
           console.log("failed ajax json request");
-        })
+        });
 
       } else {
         failedFunc("Already exists!");

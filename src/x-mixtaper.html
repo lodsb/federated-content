@@ -123,12 +123,6 @@ It reads what to play from the `songList.json`, which supports several mixtapes.
 
     },
 
-    jsonObserver: function(evt) {
-      console.log(evt);
-      this.loadedTape = evt;
-      this.$.playlist.tape = this.loadedTape;
-    },
-
     /**
       Executes when everything is in its right place
 

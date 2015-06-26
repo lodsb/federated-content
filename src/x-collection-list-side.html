@@ -1,0 +1,82 @@
+
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+<!-- Currently: collection == playlist -->
+
+<dom-module name="x-collection-list-side">
+  <template>
+    <div>
+    <span>Playlists</span>
+    <paper-menu selected="{{menuSelected}}" id="menu">
+    </paper-menu>
+  </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'x-collection-list-side',
+      properties: {
+        collections: {
+          type: Object
+        },
+        menuSelected: {
+          observer: 'menuSelectedHandler',
+          type: Number,
+          value: 0
+        },
+        playlistselected: {
+          notify: true,
+          type: Number
+        }
+
+      },
+
+      ready: function() {
+        this.refHashes = [];
+
+        var that = this;
+
+        var importEventHandler = function(event) {
+          if(event.type == "update") {
+
+            var refHash = event.data.refHash;
+
+            var playListData = playlists.data;
+            var pLLength = playListData.length;
+
+            if(jQuery.inArray(refHash, that.refHashes)) {
+              var template = that.$.menu;
+
+              that.refHashes.push(refHash);
+
+              var ch = document.createElement("paper-item");
+              ch.innerHTML = playlistByHash(refHash).title;
+              Polymer.dom(template).appendChild(ch);
+
+              Polymer.dom.flush();
+            }
+
+          }
+        }
+
+        importEvents.addListener(importEventHandler);
+
+      },
+
+      menuSelectedHandler : function(newIndex, oldIndex) {
+        console.log(newIndex);
+        try {
+            var refHash = this.refHashes[newIndex];
+
+            this.playlistselected = refHash;
+
+        } catch(e) {}
+        //console.log(this.refHashes[newIndex]);
+      }
+    });
+  </script>
+</dom-module>
