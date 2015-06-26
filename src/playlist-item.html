@@ -16,7 +16,6 @@
 
   .playlistEntry {
     @apply(--layout-vertical);
-    background: rgb(205, 23, 67);
     width: 100%;
     padding-top: 10px;
   }
@@ -24,7 +23,6 @@
   .mediaDescription {
     @apply(--layout-horizontal);
     @apply(--layout-center);
-    background: rgb(205, 23, 67);
     width: 100%;
   }
 
@@ -115,7 +113,7 @@
         this.icon = "av:play-arrow";
       },
 
-      play: function(){        
+      play: function(){
         this.fire("play");
       },
 
