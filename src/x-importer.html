@@ -51,10 +51,11 @@
     </style>
 
     <div>
-      <b>Import json</b>
+      <b>Import json</b><div id="test"></div>
       <paper-menu selected="{{selectedIndex}}" id="menu">
         <paper-item>mixtapes.json</paper-item>
         <paper-item>mixtapes0.json</paper-item>
+        <paper-item>gurly</paper-item>
       </paper-menu>
       <paper-input id="importUrlInput" label="Enter URL and hit RETURN to import" on-change="importUrl"></paper-input>
       <span>[[sel]]</span><br><br>
@@ -91,7 +92,7 @@
       is: "x-importer",
 
       created: function() {
-        this.items = ["../mixtapes.json", "../mixtapes0.json"];
+        this.items = ["../mixtapes.json", "../mixtapes0.json", "https://drive.google.com/uc?export=download&id=0B28GGAWFNg-3aWNCeGNrSnJ0Q2M"];
       },
 
       ready: function(){

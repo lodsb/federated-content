@@ -10,6 +10,10 @@
 * think of convenient sharing sys
 * webtorrent
 
+#done:
+* local storage (indexddb)
+* preliminary support for CROS using YQL
+
 #names?
 * boombox
 * lazershell

@@ -223,48 +223,95 @@ boombox.playlistByHash = function(hash) {
   return boombox.playlists.by('hash', hash);
 };
 
+boombox._successfulJsonImport = function(url, data, func) {
+  //var data = jQuery.parseJSON(jsonString);
+  var jsonString = JSON.stringify(data);
+
+  var importHash = boombox.uniqueAddToDB(data, jsonString);
+
+  var importDescriptor = {
+    'title': data.title, // shold also have a root directory indicator + colors for my imports list
+    'uri'  : url,
+    'crawl': false, // should lateron be used to retrigger crawling references
+    'type' : 'playlist', // playlist or bucket
+    'refHash' : importHash
+  };
+
+  boombox.imports.insert(importDescriptor);
+
+  func(data);
+
+  boombox.importEvents.fire(boombox.constructEvent("update", importDescriptor));
+};
+
+boombox._failedJsonImport = function(failedFunc){
+  var msg = "";
+  try{
+    jQuery.error();
+  } catch(e) {
+    msg = e.msg;
+  }
+
+  failedFunc(msg);
+  console.log("failed ajax json request");
+};
+
+boombox._ajax = function(url, func, failedFunc, nextTry) {
+  jQuery.ajax({
+    url: url,
+    crossDomain: true,
+    dataType: "json",
+    jsonpCallback: 'callback'
+    //dataType: 'jsonp' CORS?!
+  })
+  .done(function(data) {
+      boombox._successfulJsonImport(url, data, func);
+  })
+  .fail(function(){
+    // try next method
+    nextTry();
+  });
+};
+
+// using YQL to create CORS
+boombox._yql = function(url, func, failedFunc, nextTry) {
+  jQuery.getJSON("http://query.yahooapis.com/v1/public/yql",
+    {
+      q:      "select * from json where url=\""+url+"\"",
+      crossDomain: true,
+      format: "json"
+    },
+    function(data){
+      if (data.query.results) {
+        boombox._successfulJsonImport(url, data.query.results.json, func);
+      } else {
+        nextTry();
+      }
+    });
+};
+
+// exception ladder for json loading using different approaches/services
+boombox._jsonExceptionLadder = function(url, func, failedFunc){
+  var ladder = [boombox._ajax, boombox._yql, null];
+  var idx = 0;
+
+  var run = function(){
+    if(idx < ladder.length) {
+      ladder[idx++](url, func, failedFunc, run);
+    }
+  };
+
+  run();
+
+};
+
+
 boombox.importJson = function(url, func, failedFunc) {
   // TODO: validate, and throw everything away, we dont know!
 
   if(!boombox.imports.by('uri', url)) {
 
-    jQuery.ajax({
-      url: url,
-      dataType: "text"
-      //dataType: 'jsonp' CORS?!
-    })
-    .done(function(jsonString) {
-      console.log("!!!");
-      var data = jQuery.parseJSON(jsonString);
-
-      var importHash = boombox.uniqueAddToDB(data, jsonString);
-
-      var importDescriptor = {
-        'title': data.title, // shold also have a root directory indicator + colors for my imports list
-        'uri'  : url,
-        'crawl': false, // should lateron be used to retrigger crawling references
-        'type' : 'playlist', // playlist or bucket
-        'refHash' : importHash
-      };
-
-      boombox.imports.insert(importDescriptor);
-
-      func(data);
-
-      boombox.importEvents.fire(boombox.constructEvent("update", importDescriptor));
-
-    })
-    .fail(function() {
-      var msg = "";
-      try{
-        jQuery.error();
-      } catch(e) {
-        msg = e.msg;
-      }
-
-      failedFunc(msg);
-      console.log("failed ajax json request");
-    });
+    boombox._jsonExceptionLadder(url, func, failedFunc);
 
   } else {
     failedFunc("Already exists!");
