@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+  </head>
+  <body>
+    <div>
+      <h1>Dencoding...</h1><br>
+      QR cant be used properly. too much info, wont scan anyways, so own tool. Maybe QR can be embedding this shiz, yo - lateron.
+    </div>
+          <div>
+            <div>
+              <h2>original content</h2><br>
+              <div id="decIn"></div>
+            </div>
+            <div>
+              <h2>encoded content (compress)</h2><br>
+              <div id="encOut">
+              </div>
+              <h2>generated image</h2><br>
+              <canvas id="canvas" width="400" height="400"></canvas>
+                <div id="decInfo">
+                </div>
+            </div>
+            <div>
+              <h2>as img</h2><br>
+              <img id="image">
+
+
+            </div>
+          </div>
+    <div id="imgOut">
+    </div>
+
+    <script src="ext/lz-string.min.js"></script>
+
+    <script>
+
+    function padUintArray(orig, padTo) {
+      var padding = compressedJsonArray.length % padTo;
+      var data = new Uint8Array(compressedJsonArray.length + padding);
+
+      for(var i = 0; i < data.length; i++) {
+          if(i < compressedJsonArray.length) {
+            data[i] = orig[i];
+          } else {
+            data[i] = 0;
+          }
+      }
+
+      return data;
+    }
+
+    function toNextSqrt(num) {
+      num = Math.ceil(num);
+      while(Math.sqrt(num) % 1 !== 0) {
+        num++;
+      }
+
+      return num;
+    }
+
+    function encode(canvas, toEncode, origSize, orig) {
+
+
+      var version = 1;
+      var reserved= 0;
+      var name = "foobar";
+      var textSize = 180;
+
+      var context = canvas.getContext("2d");
+
+      // offset for header
+      var offset = 10;
+
+      var rectSpaceWidth   = canvas.width - offset*2;
+      var rectSpaceHeight  = canvas.height- offset*2;
+
+      var rectsPerLine = 2;
+      var numRectsForInfo = 0;
+      var paddingFitLogo  =  0;
+      var numRectsForLogo = 0;
+      var numRects= 0;
+      var rectWidth = 0;
+      var logoOffsetRects = 0;
+
+      var paddingRectsToFitDivByThree = 0;
+      // need rects per line that is divisible by 3 in order to have logo centered
+      while(rectsPerLine % 3 !== 0) {
+        numRectsForInfo = (toEncode.length / bytesPerPixel);
+        paddingFitLogo  =  numRectsForInfo % 9;
+        numRectsForLogo = toNextSqrt((numRectsForInfo+paddingFitLogo) / 9);
+        numRects= numRectsForLogo + numRectsForInfo + paddingRectsToFitDivByThree;
+
+        numRects = toNextSqrt(numRects);
+
+        // pad numRects for fitting square root number
+        console.log(">>> " + numRects + " " + paddingFitLogo + " logo " + numRectsForLogo + " info " + numRectsForInfo);
+
+        rectsPerLine =  Math.ceil(Math.sqrt(numRects));
+        rectWidth = Math.round(rectSpaceWidth/rectsPerLine);
+        logoOffsetRects = rectsPerLine / 3;
+
+        paddingRectsToFitDivByThree++;
+      }
+
+      console.log("n "+numRects+ ", "+rectsPerLine+", "+rectWidth + " numRectsForInfo "+ numRectsForInfo);
+
+      var dataIdx = 0;
+      var i = 0;
+      var checksum = 0;
+
+      while(i < numRects) {
+        var rectColumnIdx = ( i % rectsPerLine );
+        var rectRowIdx = Math.floor(i/rectsPerLine);
+
+        var xPos = rectColumnIdx * rectWidth + offset;
+        var yPos = rectRowIdx    * rectWidth + offset;
+
+        // are we in the center pos for the logo?
+        if(
+          (rectRowIdx >= logoOffsetRects && rectRowIdx < 2*logoOffsetRects)
+          &&
+          (rectColumnIdx >= logoOffsetRects && rectColumnIdx < 2*logoOffsetRects)
+        ){
+          context.fillStyle = "#000";
+        } else {
+
+          if(dataIdx < numRectsForInfo) {
+            context.fillStyle = UintsToRgbaFillStyle(toEncode, dataIdx);
+
+            checksum = (checksum + toEncode[dataIdx]) % 255;
+
+            dataIdx++;
+
+          } else {
+            // padding blocks
+            console.log("paddy");
+            context.fillStyle = "#000";
+          }
+        }
+
+        xPos = Math.round(xPos);
+        yPos = Math.round(yPos);
+
+
+        //console.log(i + " X " + xPos+" / "+yPos);
+
+        context.fillRect(xPos, yPos, rectWidth, rectWidth);
+
+        i++;
+
+      }
+
+/*
+      for(var i = 0; i < dataBlob.length; i++) {
+        console.log(i + " "+toEncode[i] + " | " + dataBlob[i]);
+      }
+
+      console.log("#####################");*/
+
+      // the big B for logo
+      textSize = (Math.sqrt(numRectsForInfo)*rectWidth)/3;
+
+      context.font = "bold "+textSize+"px sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillStyle = "#FFF";
+      context.fillText("B", canvas.width/2+rectWidth/2, canvas.height/2+rectWidth/2);
+
+      // header!
+      // bg
+      var headerOrigSizeLow = origSize % 255;
+      var headerOrigSizeHigh = Math.floor(origSize / 255);
+
+      var headerNumRectsForInfoLow = numRectsForInfo % 255;
+      var headerNumRectsForInfoHigh = Math.floor(numRectsForInfo / 255);
+
+      console.log("rgba("+headerOrigSizeHigh+","+headerOrigSizeLow+","+headerNumRectsForInfoHigh+","+headerNumRectsForInfoLow/255+")");
+
+      context.fillStyle="#FFF";
+      context.fillRect(0,0,offset, offset);
+      context.fillStyle="rgba("+version+","+reserved+","+reserved+","+checksum+")";
+      context.fillRect(offset, 0, canvas.width, offset);
+      context.fillStyle="rgba("+headerOrigSizeHigh+","+headerOrigSizeLow+","+headerNumRectsForInfoHigh+","+headerNumRectsForInfoLow/255+")";
+      context.fillRect(0,offset, offset , canvas.height);
+
+
+      console.log("Header: checksum"+checksum+" hoh "+headerOrigSizeHigh + " hol "+headerOrigSizeLow +" hnh "+headerNumRectsForInfoHigh + " hnl "+headerNumRectsForInfoLow);
+
+      return toEncode;
+    }
+
+    function UintsToRgbaFillStyle(array, index) {
+      var colorString = "rgba("+ array[index] +","+array[index+1] +","+ array[index+2] +","+array[index+3]/255+")";
+      //console.log(colorString);
+
+      return colorString;
+    }
+
+    var bytesPerPixel = 4;
+
+    var myJson = {
+      "apiVersion": "0.1",
+      "title": "LAZERS!!!!",
+      "artwork" : "http://lorempixel.com/1000/1000",
+      "date" : "2015-02-01",
+      "publisher" : "lodsb.org",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "media": [{
+        "title": "Ukusadfsdsdaflele Song",
+        "artist": "sadfsadfsdasda",
+        "uri":"http://media.laridae.at/relxcvbeases/laridae050/20-tek4.mp3",
+        "length": "04:22","type": "audio",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxx.org"
+      },{
+        "title": "I Dreameasdfsadsfadd a Dream",
+        "artist": "Wing",
+        "uri":"http://media.laridae.at/relexcvbases/laridae050/02-soap.mp3",
+        "length": "03:21","type": "audio",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxx.org"
+      }
+      ,{
+        "title": "Should be dead",
+        "artist": "Wing",
+        "uri":"asd",
+        "length": "03:21","type": "audio",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxx.org"
+      },{
+        "title": "VIDEO",
+        "artist": "Wing",
+        "uri":"http://vjs.zencdn.net/v/oceans.mp4",
+        "length": "03:21","type": "video",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxx.org"
+      },{
+        "title": "Ukusadfsdsdaflele Song",
+        "artist": "sadfsadfsdasda",
+        "uri":"http://media.layxcvyxcvyxcvridae.at/relxcvbeyxcvyxcvases/laridae050/20-tek4.mp3",
+        "length": "04:22","type": "audio",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxx.org"
+      },{
+        "title": "I Dreameasdfasdfasdfsadsfadd a Dream",
+        "artist": "Wing",
+        "uri":"http://medasdfasdfia.laridae.at/relexcvbasdfasdfases/laridae050/02-soap.mp3",
+        "length": "03:21","type": "audio",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxx.org"
+      }
+      ,{
+        "title": "Shoulyxcvyxcvd be dead",
+        "artist": "Wiyxcvng",
+        "uri":"asd",
+        "length": "03:21","type": "audio",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxyxcvyxcvyxcvyxcvx.org"
+      },{
+        "title": "VIDEO",
+        "artist": "Wi234234ng",
+        "uri":"http://vjs.zencdn.net/v/oceans.mp4",
+        "length": "03:21","type": "video",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxyxcvyxcvyxcvyxcvx.org"
+      }
+      ]
+        }
+
+    var myJsonString = JSON.stringify(myJson);//"TESTlök dlfkd lfskdö fsdf 548465 4sdf84 r23 r dsfösdfä#öüö #sädfödäöfädöfädsäödfüsdfö34ölksdöfo";//JSON.stringify(myJson);
+
+    var inputDiv = document.getElementById("decIn");
+    inputDiv.innerHTML = "<b style=\"color: violet\">" + myJsonString + "</b>";
+
+    var compressedJsonString = LZString.compress(myJsonString);
+    var encOutDiv = document.getElementById("encOut");
+    encOutDiv.innerHTML = "<b style=\"color: green\">" + compressedJsonString + "</b>";
+
+    // compress and add some padding to have complete pixel data
+    var compressedJsonArray = LZString.compressToUint8Array(myJsonString);
+    var dataBlob = padUintArray(compressedJsonArray, bytesPerPixel);
+
+    // add decoder version pixels and image end points so it can be put into QR later!!
+    // "header" with metadata
+    var canvas = document.getElementById("canvas");
+    var prox = encode(canvas, dataBlob, compressedJsonArray.length);
+
+    var img = document.getElementById("image");
+    image.src = canvas.toDataURL("image/png");
+/*
+    for(var i = 0; i < dataBlob.length; i++) {
+      console.log(i + " "+prox[i] + " | "+ dataBlob[i] + " ");
+    }*/
+
+
+    </script>
+
+
+  </body>
+</html>

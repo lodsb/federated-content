@@ -327,9 +327,11 @@ boombox.importJson = function(url, func, failedFunc) {
 
 boombox.importEvents = boombox.createEventHandler();
 boombox.populateDBData = function() {
-  iData = boombox.imports.data;
+  if(boombox.imports.data) {
+    iData = boombox.imports.data;
 
-  if(iData.length > 0) {
-    boombox.importEvents.fire(boombox.constructEvent("init", iData));
+    if(iData.length > 0) {
+      boombox.importEvents.fire(boombox.constructEvent("init", iData));
+    }
   }
 };
