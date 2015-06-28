@@ -20,9 +20,9 @@ function loadHandler() {
   boombox.playlists = ___db.getCollection('playlists');
 
   console.log("SDF");
-  console.log((boombox.debug_loadDB===true) || (boombox.playlists === "null"));
+  console.log((boombox.debug_loadDB===true) || (boombox.playlists == null));
 
-  if((boombox.debug_loadDB===false) || (boombox.playlists === "null") ) {
+  if((boombox.debug_loadDB===false) || (boombox.playlists == null) ) {
     console.log("creating db");
     boombox.playlists = ___db.addCollection('playlists');
     boombox.media = ___db.addCollection('media');
