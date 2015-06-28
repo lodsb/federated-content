@@ -11,6 +11,12 @@
 * webtorrent
 * hash decal filename for embedding QR code?
 * promises+chaining for the async stuff, FRP? baconjs, kefir, rxjs?
+* add with auto reload field to json? could be used to piggback other info on top of it? like social features? encrpytion, fake "local" storage?
+
+#JSON
+* add id3 tags comment per media
+* tags per media  + playlist
+* involved ppl, freiform
 
 #done:
 * local storage (indexddb)

@@ -80,10 +80,10 @@ boombox.constructEvent = function(typeName, data) {
 boombox.search = function(query) {
   //TODO: make search case insensitive!
   // wasting cycles
-  var playlistSearch = playlists.find({'title': {'$contains': query}});
+  var playlistSearch = boombox.playlists.find({'title': {'$contains': query}});
 
-  var artistSearch= media.find({'artist': {'$contains': query}});
-  var mediaSearch = media.find({'title': {'$contains': query}});
+  var artistSearch= boombox.media.find({'artist': {'$contains': query}});
+  var mediaSearch = boombox.media.find({'title': {'$contains': query}});
 
   var result = {};
   result.playlists = playlistSearch;

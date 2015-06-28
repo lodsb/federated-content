@@ -49,11 +49,11 @@
     var headerOffset = 50;
 
     function padUintArray(orig, padTo) {
-      var padding = compressedJsonArray.length % padTo;
-      var data = new Uint8Array(compressedJsonArray.length + padding);
+      var padding = (orig.length-1) % padTo;
+      var data = new Uint8Array(orig.length + padding);
 
       for(var i = 0; i < data.length; i++) {
-          if(i < compressedJsonArray.length) {
+          if(i < orig.length) {
             data[i] = orig[i];
           } else {
             data[i] = 0;
@@ -72,13 +72,22 @@
       return num;
     }
 
-    function encode(canvas, toEncode, origSize, orig) {
+    function randomString() {
+      return _.shuffle(["sleepy","cat","says","lol","moar","lazers","here","now","unicorns"]).join("");
+    }
+
+    function encode(canvas, myString, logoString) {
+      // first compress and add some padding to have complete pixel data
+      var compressedJsonArray = LZString.compressToUint8Array(myString);
+      var toEncode = padUintArray(compressedJsonArray, bytesPerPixel);
+
+      var origSize = compressedJsonArray.length;
+
+
       // should set minimum size?
 
       var version = 1;
       var reserved= 10;
-      var name = "foobar";
-      var textSize = 180;
 
       var context = canvas.getContext("2d");
 
@@ -144,9 +153,14 @@
 
           if(infoIdx < numRectsForInfo) {
             var dataIdx = infoIdx*bytesPerPixel
-            var checksumAdd = toEncode[dataIdx] + toEncode[dataIdx+1] + toEncode[dataIdx+2];
 
-            checksum = (checksum + checksumAdd) % 255;
+            checksum = updateChecksum(checksum, toEncode[dataIdx], toEncode[dataIdx+1], toEncode[dataIdx+2]);
+            if(isNaN(checksum)){
+              console.log(toEncode[dataIdx]);
+              console.log(toEncode[dataIdx+1]);
+              console.log(toEncode[dataIdx+2]);
+              console.log(checksumAdd);
+            }
 
             // color coding = data enc
             context.fillStyle = UintsToRgbaFillStyle(toEncode, dataIdx);
@@ -173,13 +187,24 @@
 
 
       // the big B for logo
-      textSize = (Math.sqrt(numRectsForLogo)*rectWidth);
 
-      context.font = "bold "+textSize+"px sans-serif";
+
+      textSize = 1000;
+      var logoSpace = Math.floor(Math.sqrt(numRectsForLogo-1))*rectWidth;
+
+      do {
+
+        textSize-=2;
+        context.font = "bold "+textSize+"px sans-serif";
+        var measureText = context.measureText(logoString);
+
+      } while(measureText.width  >= logoSpace)
+
+
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.fillStyle = "#FFF";
-      context.fillText("B", canvas.width/2+rectWidth/2, canvas.height/2+rectWidth/2);
+      context.fillText(logoString, (canvas.width-offset)/2, (canvas.height-offset)/2);
 
       // header!
       // bg
@@ -209,6 +234,10 @@
       console.log("Header: checksum "+checksum+" hoh "+headerOrigSizeHigh + " hol "+headerOrigSizeLow +" hnh "+headerNumRectsHigh + " hnl "+headerNumRectsLow);
       console.log("original datasize "+origSize);
 
+    }
+
+    function updateChecksum(myChecksum, r,g,b){
+      return (myChecksum+r+g+b+13)%255;
     }
 
     function getColors(pixelData) {
@@ -326,6 +355,12 @@
 
       var calculatedChecksum = 0;
 
+      var pushToArray = function(x){
+          if(rectDataBlob.length < dataSize) {
+            rectDataBlob.push(x);
+          }
+      };
+
       for(var i = 0; i < numRects; i++){
         var xRect = i % numRectsPerLine;
         var yRect = Math.floor(i / numRectsPerLine);
@@ -342,13 +377,13 @@
 
         // filter out mask color
         if(_sum != 0) {
-          rectDataBlob.push(_r);
-          rectDataBlob.push(_g);
-          rectDataBlob.push(_b);
+          pushToArray(_r);
+          pushToArray(_g);
+          pushToArray(_b);
 
           var checksumAdd = _sum % 255;
 
-          calculatedChecksum = (calculatedChecksum + checksumAdd) % 255;
+          calculatedChecksum = updateChecksum(calculatedChecksum, _r, _g, _b);
 
         } else {
           context.fillStyle = "#F00";
@@ -362,14 +397,13 @@
       console.log(calculatedChecksum);
 
       if(checksum != calculatedChecksum) {
-        console.log("ERROR!!!!! checksums do NOT match!")
-        //throw new Error("Checksums do not match!!");
+        throw new Error("Checksums do not match!!");
       } else {
         console.log("YAY! checksums match!")
       }
 
 
-      var uintData = new Uint8Array(rectDataBlob.length);
+      var uintData = new Uint8Array(dataSize);
 
       for(var i = 0; i < rectDataBlob.length; i++) {
         uintData[i] = rectDataBlob[i];
@@ -385,8 +419,7 @@
 
       //console.log(colorsDec);
 
-      return uintData;
-
+      return LZString.decompressFromUint8Array(uintData);
 
     }
 
@@ -497,21 +530,16 @@
     var encOutDiv = document.getElementById("encOut");
     encOutDiv.innerHTML = "<b style=\"color: green\">" + compressedJsonString + "</b>";
 
-    // compress and add some padding to have complete pixel data
-    var compressedJsonArray = LZString.compressToUint8Array(myJsonString);
-    var dataBlob = padUintArray(compressedJsonArray, bytesPerPixel);
-
     // add decoder version pixels and image end points so it can be put into QR later!!
     // "header" with metadata
     var canvasEncoder = document.getElementById("canvasEncoder");
-    var prox = encode(canvasEncoder, dataBlob, compressedJsonArray.length);
+    var prox = encode(canvasEncoder, myJsonString, "supermeng");
 
     var img = document.getElementById("image");
     img.src = canvasEncoder.toDataURL("image/png", 1.0);
 
     var canvasDecoder = document.getElementById("canvasDecoder");
-    var decodedDataCompressed = decode(canvasDecoder, image);
-    var decodedData = LZString.decompressFromUint8Array(decodedDataCompressed);
+    var decodedData = decode(canvasDecoder, image);
 
     var decOutCompressDiv = document.getElementById("decOut");
     decOutCompressDiv.innerHTML = "<b style=\"color: red\">" + decodedData + "</b>"
