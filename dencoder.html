@@ -18,23 +18,35 @@
               <div id="encOut">
               </div>
               <h2>generated image</h2><br>
-              <canvas id="canvas" width="400" height="400"></canvas>
+              <canvas id="canvasEncoder" width="400" height="400"></canvas>
                 <div id="decInfo">
                 </div>
+            </div>
+            <div id="test">
             </div>
             <div>
               <h2>as img</h2><br>
               <img id="image">
-
-
+            </div>
+            <div>
+              <h2>decoding</h2><br>
+              <canvas id="canvasDecoder" width="400" height="400"></canvas>
+            </div>
+            <div>
+              <h2>decoded content</h2><br>
+              <div id="decOut">
+              </div>
             </div>
           </div>
     <div id="imgOut">
     </div>
 
     <script src="ext/lz-string.min.js"></script>
+    <script src="bower_components/underscore/underscore.js"></script>
 
     <script>
+
+    var headerOffset = 50;
 
     function padUintArray(orig, padTo) {
       var padding = compressedJsonArray.length % padTo;
@@ -61,17 +73,20 @@
     }
 
     function encode(canvas, toEncode, origSize, orig) {
-
+      // should set minimum size?
 
       var version = 1;
-      var reserved= 0;
+      var reserved= 10;
       var name = "foobar";
       var textSize = 180;
 
       var context = canvas.getContext("2d");
 
+      context.fillStyle = maskColor;
+      context.fillRect(0,0, canvas.width, canvas.height);
+
       // offset for header
-      var offset = 10;
+      var offset = canvas.width/headerOffset;
 
       var rectSpaceWidth   = canvas.width - offset*2;
       var rectSpaceHeight  = canvas.height- offset*2;
@@ -86,6 +101,7 @@
 
       var paddingRectsToFitDivByThree = 0;
       // need rects per line that is divisible by 3 in order to have logo centered
+      // fixed point interation style
       while(rectsPerLine % 3 !== 0) {
         numRectsForInfo = (toEncode.length / bytesPerPixel);
         paddingFitLogo  =  numRectsForInfo % 9;
@@ -106,7 +122,7 @@
 
       console.log("n "+numRects+ ", "+rectsPerLine+", "+rectWidth + " numRectsForInfo "+ numRectsForInfo);
 
-      var dataIdx = 0;
+      var infoIdx = 0;
       var i = 0;
       var checksum = 0;
 
@@ -123,20 +139,23 @@
           &&
           (rectColumnIdx >= logoOffsetRects && rectColumnIdx < 2*logoOffsetRects)
         ){
-          context.fillStyle = "#000";
+          context.fillStyle = maskColor;
         } else {
 
-          if(dataIdx < numRectsForInfo) {
+          if(infoIdx < numRectsForInfo) {
+            var dataIdx = infoIdx*bytesPerPixel
+            var checksumAdd = toEncode[dataIdx] + toEncode[dataIdx+1] + toEncode[dataIdx+2];
+
+            checksum = (checksum + checksumAdd) % 255;
+
+            // color coding = data enc
             context.fillStyle = UintsToRgbaFillStyle(toEncode, dataIdx);
 
-            checksum = (checksum + toEncode[dataIdx]) % 255;
-
-            dataIdx++;
+            infoIdx++;
 
           } else {
             // padding blocks
-            console.log("paddy");
-            context.fillStyle = "#000";
+            context.fillStyle = maskColor;
           }
         }
 
@@ -152,15 +171,9 @@
 
       }
 
-/*
-      for(var i = 0; i < dataBlob.length; i++) {
-        console.log(i + " "+toEncode[i] + " | " + dataBlob[i]);
-      }
-
-      console.log("#####################");*/
 
       // the big B for logo
-      textSize = (Math.sqrt(numRectsForInfo)*rectWidth)/3;
+      textSize = (Math.sqrt(numRectsForLogo)*rectWidth);
 
       context.font = "bold "+textSize+"px sans-serif";
       context.textAlign = "center";
@@ -173,32 +186,223 @@
       var headerOrigSizeLow = origSize % 255;
       var headerOrigSizeHigh = Math.floor(origSize / 255);
 
-      var headerNumRectsForInfoLow = numRectsForInfo % 255;
-      var headerNumRectsForInfoHigh = Math.floor(numRectsForInfo / 255);
+      var headerNumRectsLow = numRects % 255;
+      var headerNumRectsHigh = Math.floor(numRects / 255);
 
-      console.log("rgba("+headerOrigSizeHigh+","+headerOrigSizeLow+","+headerNumRectsForInfoHigh+","+headerNumRectsForInfoLow/255+")");
+      console.log("rgba("+headerOrigSizeHigh+","+headerOrigSizeLow+","+headerNumRectsHigh+","+headerNumRectsLow/255+")");
 
-      context.fillStyle="#FFF";
+      // header part 1
+      context.fillStyle=maskColor;
       context.fillRect(0,0,offset, offset);
-      context.fillStyle="rgba("+version+","+reserved+","+reserved+","+checksum+")";
+      context.fillStyle="rgba("+version+","+headerOrigSizeHigh+","+headerOrigSizeLow+",1.0)";
       context.fillRect(offset, 0, canvas.width, offset);
-      context.fillStyle="rgba("+headerOrigSizeHigh+","+headerOrigSizeLow+","+headerNumRectsForInfoHigh+","+headerNumRectsForInfoLow/255+")";
-      context.fillRect(0,offset, offset , canvas.height);
+
+      // header part 2
+      context.fillStyle="rgba("+checksum+","+headerNumRectsHigh+","+headerNumRectsLow+", 1.0)";
+      context.fillRect(0,offset, offset , canvas.height/2);
+
+      // header part 3
+      context.fillStyle="rgba("+rectsPerLine+","+0+","+0+", 1.0)";
+      context.fillRect(0,canvas.height/2, offset , canvas.height);
 
 
-      console.log("Header: checksum"+checksum+" hoh "+headerOrigSizeHigh + " hol "+headerOrigSizeLow +" hnh "+headerNumRectsForInfoHigh + " hnl "+headerNumRectsForInfoLow);
+      console.log("Header: checksum "+checksum+" hoh "+headerOrigSizeHigh + " hol "+headerOrigSizeLow +" hnh "+headerNumRectsHigh + " hnl "+headerNumRectsLow);
+      console.log("original datasize "+origSize);
 
-      return toEncode;
+    }
+
+    function getColors(pixelData) {
+      var out = [];
+
+      var last_r = -1;
+      var last_g = -1;
+      var last_b = -1;
+      var last_a = -1;
+
+      for(var i = 0; i < pixelData.length/4; i+=4) {
+        var cur_r = pixelData[i];
+        var cur_g = pixelData[i+1];
+        var cur_b = pixelData[i+2];
+        var cur_a = pixelData[i+3];
+
+        if(
+            (last_r != cur_r) &&
+            (last_g != cur_g) &&
+            (last_b != cur_b) &&
+            (last_a != cur_a)
+          ) {
+
+            out.push({r: cur_r, g: cur_b, b: cur_b, a: cur_a});
+
+          }
+
+          last_r = cur_r;
+          last_g = cur_g;
+          last_b = cur_b;
+          last_a = cur_a;
+      }
+
+      return out;
+
+    }
+
+
+    function getPixelData(pixelData, x,y, width) {
+      var pos = x + ( y*width );
+      var idx = pos*4;
+      return {r: pixelData[idx], g: pixelData[idx+1],  b: pixelData[idx+2] };
+    }
+
+    function decode(canvas, imageElement) {
+      context = canvas.getContext("2d");
+
+      context.drawImage(imageElement, 0,0);
+
+      var pixelData = context.getImageData(0,0, canvas.width, canvas.height).data;
+
+      var headerOffsetDec = canvas.width/headerOffset;
+
+      var getPixel = function(x,y) {
+                      var ret = getPixelData(pixelData, x, y, canvas.width);
+                      // mark position
+                      context.fillStyle = "#FF0";
+                      context.fillRect(x,y,2,2);
+                      return ret;
+                    };
+
+      var getLinePixel = function(y) {
+                    var ret = [];
+
+                    for(var i = 0; i < canvas.width; i++) {
+                      ret.push(getPixel(i,y));
+                    }
+
+                    return ret;
+      }
+
+
+      // take data from the centers of the header parts
+      var headerPart1 = getPixel(canvas.width/2, headerOffsetDec/4);
+      var headerPart2 = getPixel(headerOffsetDec/4, canvas.width/4);
+      var headerPart3 = getPixel(headerOffsetDec/4, canvas.width*(3/4));
+
+      var version = headerPart1.r;
+      var dataSize= (headerPart1.g*255)+headerPart1.b;
+      var checksum= headerPart2.r;
+      var numRects= (headerPart2.g*255) + headerPart2.b;
+      var numRectsPerLine= headerPart3.r;
+
+
+      console.log("version "+version);
+      console.log("dataSize "+dataSize);
+      console.log("checksum "+checksum);
+      console.log("numRects "+numRects);
+      console.log("numRectsPerLine "+numRectsPerLine);
+
+
+      var firstLine = getLinePixel(Math.ceil(1.5*headerOffsetDec));
+      var endPixelInfoRow = _.findIndex(firstLine, {r:0, g: 0, b: 0});
+      var startPixelInfoRow = _.findLastIndex(firstLine, headerPart2) + 2;
+      var lengthOfPixelInfoRow = endPixelInfoRow-startPixelInfoRow;
+
+      var widthOfPixelRect = Math.ceil(lengthOfPixelInfoRow / numRectsPerLine);
+
+      console.log("startPixelInfoRow of row : "+startPixelInfoRow);
+      console.log("endPixelInfoRow of row : "+endPixelInfoRow);
+      console.log("lengthOfPixelInfoRow : "+lengthOfPixelInfoRow);
+      console.log("widthOfPixelRect: "+widthOfPixelRect);
+
+      // mask center logo
+      var centerLogoStart = Math.ceil(lengthOfPixelInfoRow/3) + headerOffsetDec;
+      var centerLogoEnd  = centerLogoStart - headerOffsetDec;
+      context.fillStyle = maskColor;
+      context.fillRect(centerLogoStart, centerLogoStart, centerLogoEnd, centerLogoEnd);
+      // update data
+      pixelData = context.getImageData(0,0, canvas.width, canvas.height).data;
+
+      var pixelOffset = Math.floor(headerOffsetDec) + 2;
+
+      var rectDataBlob = [];
+
+      var calculatedChecksum = 0;
+
+      for(var i = 0; i < numRects; i++){
+        var xRect = i % numRectsPerLine;
+        var yRect = Math.floor(i / numRectsPerLine);
+
+        var xPos = pixelOffset + xRect*widthOfPixelRect;
+        var yPos = pixelOffset + yRect*widthOfPixelRect;
+        var rectData = getPixel(xPos, yPos);
+
+        var _r = rectData.r;
+        var _g = rectData.g;
+        var _b = rectData.b;
+
+        var _sum = _r + _g + _b;
+
+        // filter out mask color
+        if(_sum != 0) {
+          rectDataBlob.push(_r);
+          rectDataBlob.push(_g);
+          rectDataBlob.push(_b);
+
+          var checksumAdd = _sum % 255;
+
+          calculatedChecksum = (calculatedChecksum + checksumAdd) % 255;
+
+        } else {
+          context.fillStyle = "#F00";
+          context.fillRect(xPos, yPos, 10, 10);
+        }
+
+      }
+
+      console.log(rectDataBlob.length);
+      console.log(rectDataBlob.length/3);
+      console.log(calculatedChecksum);
+
+      if(checksum != calculatedChecksum) {
+        console.log("ERROR!!!!! checksums do NOT match!")
+        //throw new Error("Checksums do not match!!");
+      } else {
+        console.log("YAY! checksums match!")
+      }
+
+
+      var uintData = new Uint8Array(rectDataBlob.length);
+
+      for(var i = 0; i < rectDataBlob.length; i++) {
+        uintData[i] = rectDataBlob[i];
+      }
+
+
+      // get line
+
+      //var colorsDec = getColors(pixelData);
+
+
+
+
+      //console.log(colorsDec);
+
+      return uintData;
+
+
     }
 
     function UintsToRgbaFillStyle(array, index) {
-      var colorString = "rgba("+ array[index] +","+array[index+1] +","+ array[index+2] +","+array[index+3]/255+")";
+      var colorString = "rgba("+ array[index] +","+array[index+1] +","+ array[index+2] +", 1.0)";
       //console.log(colorString);
 
       return colorString;
     }
 
-    var bytesPerPixel = 4;
+    // cant use alpha channel because of browser premul
+    // see https://stackoverflow.com/questions/4309364/why-does-html-canvas-getimagedata-not-return-the-exact-same-values-that-were-j
+    var bytesPerPixel = 3;
+
+    // since the info is already compressed, we can use black as mask color
+    var maskColor= "#000";
 
     var myJson = {
       "apiVersion": "0.1",
@@ -266,6 +470,21 @@
         "license" : "CC-SA-NC-3.0",
         "supportUri" : "http://xxyxcvyxcvyxcvyxcvx.org"
       }
+      ,{
+        "title": "VIasasdasdadsasdDEO",
+        "artist": "Wi234234ng",
+        "uri":"http://vasasdasdasdasdjs.zencdn.net/v/oceans.mp4",
+        "length": "03:21","type": "video",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxyxcvyasdasdxcvyxcvyxcvx.org"
+      },{
+        "title": "VIDEO",
+        "artist": "Wi234234ng",
+        "uri":"http://asasdadsasdsadvjs.zencdn.net/v/oceans.mp4",
+        "length": "03:21","type": "video",
+        "license" : "CC-SA-NC-3.0",
+        "supportUri" : "http://xxyxcvyxcvyxcvyxcvx.org"
+      }
       ]
         }
 
@@ -284,16 +503,18 @@
 
     // add decoder version pixels and image end points so it can be put into QR later!!
     // "header" with metadata
-    var canvas = document.getElementById("canvas");
-    var prox = encode(canvas, dataBlob, compressedJsonArray.length);
+    var canvasEncoder = document.getElementById("canvasEncoder");
+    var prox = encode(canvasEncoder, dataBlob, compressedJsonArray.length);
 
     var img = document.getElementById("image");
-    image.src = canvas.toDataURL("image/png");
-/*
-    for(var i = 0; i < dataBlob.length; i++) {
-      console.log(i + " "+prox[i] + " | "+ dataBlob[i] + " ");
-    }*/
+    img.src = canvasEncoder.toDataURL("image/png", 1.0);
 
+    var canvasDecoder = document.getElementById("canvasDecoder");
+    var decodedDataCompressed = decode(canvasDecoder, image);
+    var decodedData = LZString.decompressFromUint8Array(decodedDataCompressed);
+
+    var decOutCompressDiv = document.getElementById("decOut");
+    decOutCompressDiv.innerHTML = "<b style=\"color: red\">" + decodedData + "</b>"
 
     </script>
 

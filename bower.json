@@ -28,6 +28,7 @@
     "iron-elements": "PolymerElements/iron-elements#^1.0.0",
     "video.js": "~4.12.10",
     "lokijs": "~1.3.4",
-    "jquery": "~2.1.4"
+    "jquery": "~2.1.4",
+    "underscore": "~1.8.3"
   }
 }

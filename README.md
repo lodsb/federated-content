@@ -1,4 +1,4 @@
-#TODO:
+#TODO/NOTES:
 * free form suche
   random selection of source uris
 * attach meta info to uuid?
@@ -9,6 +9,8 @@
 * auto upload zu google docs etc
 * think of convenient sharing sys
 * webtorrent
+* hash decal filename for embedding QR code?
+* promises+chaining for the async stuff, FRP? baconjs, kefir, rxjs?
 
 #done:
 * local storage (indexddb)
