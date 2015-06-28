@@ -126,8 +126,15 @@
             <paper-fab icon="chevron-left"  on-click="prevButtonHandler" mini></paper-fab>
             <paper-fab icon="chevron-right" on-click="nextButtonHandler" mini></paper-fab>
           </div>
+          <div style="float: right; height: 20px; width: 60%; background-color: #0f9d58;">
+            <paper-slider
+              min="0"
+              max="{{ trackDuration }}"
+              value="{{ trackElapsed }}"
+              id="slider" style="background: #DDF;"></paper-slider>
+          </div>
 
-          <div class="middle title">
+          <div>
               <div style="margin-top: 30px;">
                 <div style="float: left"><span>{{selectedMedia.artist}}</span> - <span>{{selectedMedia.title}}</span></div>
                 <div style="float: right;">
@@ -142,14 +149,8 @@
                   <span>{{videoUri}}</span><br>
                 </div>
               </div>
-          </div>
-          <div class="bottom flex" style="height: 20px; background-color: #0f9d58;">
-            <paper-slider
-              min="0"
-              max="{{ trackDuration }}"
-              value="{{ trackElapsed }}"
-              id="slider" style="background: #DDF;"></paper-slider>
-          </div>
+          </div> 
+
         </paper-toolbar>
         <div class="contentPage">
           <div class="mainContent">
