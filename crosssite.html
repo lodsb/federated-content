@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+  </head>
+  <body>
+    <script src="ext/lz-string.js"></script>
+    <script src="printableChars.js"></script>
+
+    <h1>Testing (from url)</h1><br>
+      <div>
+      <p id="title"></p>
+    <p id="url"></p>
+    <p id="json"></p>
+  </div>
+
+    <script>
+      function genIFrameHTML(url) {
+        var myHtml =
+        '<html>'+
+        '<scri'+'pt>' +
+        'function jsonpCallback(jsonp) {' +
+        'parent.postMessage(JSON.stringify(jsonp),\'*\');'+ // should do sanity checks HERE
+        '}' +
+        '</scri'+'pt>' +
+        '<scri'+'pt src=\''+url+'\'></scri'+'pt>'+
+        '</html>';
+
+        return myHtml;
+      }
+
+      function getJsonp(url) {
+        // use promise
+        var iframe= document.createElement("iframe");
+        iframe.height = 0;
+        iframe.width = 0;
+        iframe.style.visibility ="hidden";
+        iframe.style.display ="none";
+        document.body.appendChild(iframe);
+
+        var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+        var eventer = window[eventMethod];
+        var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+        console.log(url);
+
+        // Listen to message from child window
+        eventer(messageEvent,function(e) {
+            var key = e.message ? "message" : "data";
+            var data = e[key];
+
+            console.log(data);
+
+            iframe.remove();
+            document.getElementById("json").innerText = data;
+        },false);
+
+        iframe.contentWindow.document.open();
+        iframe.contentWindow.document.write(genIFrameHTML(url));
+        iframe.contentWindow.document.close();
+      }
+
+
+      function compressUrl(url, additionalInfo) {
+        var myString = url + ":::" + additionalInfo;
+        var compressedString = LZString.compressToUint8Array(myString);
+
+        function y(a){out = []; for(var i= 0; i < a.length; i++){out.push(a[i])}; return out;}
+
+        return  y(compressedString).map(function(x){return printableCharacters[x]}).join("");
+      }
+
+      function decompressUrl(myString) {
+        var ga = [];
+
+        for(var i = 0; i < myString.length;) {
+          var str = "";
+          var oldI = i;
+          if(myString.charCodeAt(i) < 53) {
+            str = myString.substring(i, i+2);
+            i = i + 2;
+          } else {
+            str = myString.substring(i, i+1);
+            i = i + 1;
+          }
+
+          var idx = printableCharacters.indexOf(str);
+          if(idx < 0) {
+            console.log(myString.charAt(oldI)+" "+myString.charCodeAt(oldI));
+            console.log(str + " | ");
+          }
+
+          ga.push(idx);
+
+        }
+
+        var ex = new Uint8Array(ga.length);
+        for(var i=0; i < ex.length; i++){
+          ex[i] = ga[i];
+        }
+
+        var decompressedString = LZString.decompressFromUint8Array(ex);
+        var nfo = decompressedString.split(":::");
+
+        return {url: nfo[0], additionalInfo: nfo[1]};
+
+      }
+
+      var nfo = decompressUrl(window.location.hash.substring(1));
+
+      document.getElementById("title").innerText = nfo.additionalInfo;
+      document.getElementById("url").innerText = "downloading info from "+nfo.url;
+
+      getJsonp(nfo.url);
+
+      console.log(window.location.hash);
+
+    </script>
+
+
+
+  </body>
+
+</html>

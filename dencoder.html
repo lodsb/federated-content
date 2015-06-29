@@ -536,7 +536,9 @@
     var prox = encode(canvasEncoder, myJsonString, "supermeng");
 
     var img = document.getElementById("image");
-    img.src = canvasEncoder.toDataURL("image/png", 1.0);
+        img.crossOrigin = "Anonymous";
+    img.src = "https://drive.google.com/uc?export=download&id=0B28GGAWFNg-3dFh3VkJiR3FBMzQ";
+    //canvasEncoder.toDataURL("image/png", 1.0);
 
     var canvasDecoder = document.getElementById("canvasDecoder");
     var decodedData = decode(canvasDecoder, image);

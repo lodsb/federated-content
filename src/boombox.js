@@ -3,7 +3,7 @@
 
 // "API"
 var boombox = {};
-boombox.debug_loadDB = true;
+boombox.debug_loadDB = false;
 
 // "Setup"
 
