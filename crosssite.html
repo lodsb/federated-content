@@ -20,7 +20,7 @@
         '<html>'+
         '<scri'+'pt>' +
         'function jsonpCallback(jsonp) {' +
-        'parent.postMessage(JSON.stringify(jsonp),\'*\');'+ // should do sanity checks HERE
+        'parent.postMessage(JSON.stringify(jsonp),\'*\');'+
         '}' +
         '</scri'+'pt>' +
         '<scri'+'pt src=\''+url+'\'></scri'+'pt>'+
@@ -49,7 +49,7 @@
             var key = e.message ? "message" : "data";
             var data = e[key];
 
-            console.log(data);
+            console.log(data); // should do sanity checks HERE
 
             iframe.remove();
             document.getElementById("json").innerText = data;
