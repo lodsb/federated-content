@@ -133,7 +133,11 @@
         update: {
           type: Object,
           notify: true,
-        }
+        },
+        playlistselected: {
+          notify: true,
+          type: Number
+        },
 
       },
 
@@ -156,6 +160,10 @@
         });
 
         this.$.importUrlInput.value = "";
+      },
+
+      gotoPlaylist: function(hash) {
+        this.playlistselected = hash;
       },
 
       _selectedIndexChanged: function(newIndex, oldIndex) {
@@ -181,6 +189,7 @@
               that.update = jsonData;
 
               that.showToastMessage("Imported "+url+" : "+jsonData.title);
+              that.gotoPlaylist(jsonData.hash);
               document.getElementById("importLoadingDialog").close();
 
 

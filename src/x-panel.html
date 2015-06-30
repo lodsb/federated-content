@@ -163,7 +163,7 @@
                 </ol>
 
             </div>
-            <div id="c2" hidden="{{hidec2}}"><x-importer id="importer" toastmsg={{toast}}></x-importer></div>
+            <div id="c2" hidden="{{hidec2}}"><x-importer id="importer" toastmsg={{toast}} playlistselected={{selectedplaylist}}></x-importer></div>
             <div id="c3" hidden="{{hidec3}}">
                 <div style="margin: 0px;">
                   <div id="dummyvid"></div>
@@ -287,6 +287,7 @@ Polymer({
     },
 
     selectedPlaylistObserver: function(refHash) {
+      console.log("foooooo");
       var playlist = boombox.playlistByHash(refHash);
       if(playlist) {
         this.loadedTape = playlist;

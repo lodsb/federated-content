@@ -10,7 +10,7 @@ boombox.firstLoad = true;
 boombox.web = web;
 // "Setup"
 
-var ___db = new loki('boombox_data.json',
+var ___db = new loki('boombox_data2.json',
   {
     autoload: true,
     autoloadCallback : loadHandler,
