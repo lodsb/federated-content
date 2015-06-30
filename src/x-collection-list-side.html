@@ -4,15 +4,17 @@
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 
 <!-- Currently: collection == playlist -->
 
 <dom-module name="x-collection-list-side">
   <template>
     <div>
-    <span>Playlists</span>
+    <span>My Library</span>
     <paper-menu selected="{{menuSelected}}" id="menu">
     </paper-menu>
+
   </div>
   </template>
 
@@ -31,12 +33,13 @@
         playlistselected: {
           notify: true,
           type: Number
-        }
+        },
 
       },
 
       ready: function() {
         this.refHashes = [];
+        this.tubular = [];
 
         var that = this;
 
@@ -53,9 +56,8 @@
 
               that.refHashes.push(refHash);
 
-              var ch = document.createElement("paper-item");
-              ch.innerHTML = boombox.playlistByHash(refHash).title;
-              Polymer.dom(template).appendChild(ch);
+
+              Polymer.dom(template).appendChild(that.genItem(event.data, boombox.playlistByHash(refHash)));
 
               Polymer.dom.flush();
             }
@@ -74,7 +76,7 @@
               that.refHashes.push(pl.hash);
 
               var ch = document.createElement("paper-item");
-              ch.innerHTML = pl.title;
+              ch.innerHTML = ""+pl.title+"";
               Polymer.dom(template).appendChild(ch);
               Polymer.dom.flush();
               console.log("sdf");
@@ -86,6 +88,32 @@
 
         // load data from db if exists
         boombox.populateDBData();
+
+      },
+
+      genItem: function(importItem, playlistItem) {
+        var ch = document.createElement("paper-item");
+
+        ch.innerText = playlistItem.title;
+
+        if(!playlistItem.persistent) {
+          var c = document.createElement("paper-checkbox");
+
+          // on the first call it is already checked
+          c.checkedState = true;
+          c.onchange = function(e){
+
+            boombox.persist(c.checkedState, importItem, playlistItem);
+
+            console.log(c.checkedState);
+            c.checkedState = !c.checkedState;
+
+          };
+          ch.appendChild(c);
+        }
+
+        console.log("LOL");
+        return ch;
 
       },
 

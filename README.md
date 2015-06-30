@@ -17,10 +17,21 @@
 * add id3 tags comment per media
 * tags per media  + playlist
 * involved ppl, freiform
+* download allow yes/no
+http://www.openajax.org/whitepapers/Ajax%20and%20Mashup%20Security.php
+You can take several approaches to secure the use of JSON. The first approach is to use the regular expressions defined in RFC 4627 to make sure the JSON data doesn't contain active parts. Listing 12 demonstrates how to check a JSON string with a regular expression:
+http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
+Listing 12. Checking a JSON string with a regular expression
+
+	var my_JSON_object = !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(
+    text.replace(/"(\.|[^"\])*"/g, ' '))) &&
+    eval('(' + text + ')');
+
+    https://stackoverflow.com/questions/29022794/is-getjson-safe-to-call-on-untrusted-url
 
 #done:
 * local storage (indexddb)
-* preliminary support for CROS using YQL
+* preliminary support for CROS using YQL/jsonp
 
 #names?
 * boombox

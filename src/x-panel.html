@@ -149,7 +149,7 @@
                   <span>{{videoUri}}</span><br>
                 </div>
               </div>
-          </div> 
+          </div>
 
         </paper-toolbar>
         <div class="contentPage">
@@ -452,6 +452,12 @@ Polymer({
       this.disableAudio = function(){
         audioElement.pause()
       };
+
+      // if page was loaded with an import url, import it
+      if(window.location.hash != "") {
+        var url = boombox.web.decompressHash(window.location.hash.substring(1)).url;
+        importer.importFromUrl(url);
+      }
 
     },
 

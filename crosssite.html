@@ -4,116 +4,73 @@
 
   </head>
   <body>
+    <script src="bower_components/lokijs/src/lokijs.js"></script>
+    <script src="bower_components/lokijs/src/loki-indexed-adapter.js"></script>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="ext/lz-string.js"></script>
-    <script src="printableChars.js"></script>
-
+    <script src="src/web.js"></script>
+    <script src="src/boombox.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+<title>sdf</title>
     <h1>Testing (from url)</h1><br>
       <div>
       <p id="title"></p>
     <p id="url"></p>
     <p id="json"></p>
+    <!--<iframe id="shit" src="https://89185ffbbf55a4c2fa00231d24c64e549c31b546.googledrive.com/secure/ACc40b101pIsrKlU-8SsfA3g9l7pajUeKa7MV7kwaXl-2aYnniyYPQoVfi9I-cpn_WlGI1SWu8GMgkCc_Fl6Yk3nAPjYF_4BENCgbrk1WFcpr6q9nY-VMHfFISzu3NQkz1VDo9Wrn5IyFLdG3_oD7TNBGD3y5ddKvTmmihsjLJV7agYBzjQPQaKsbp4zOMUI9uyHNF62a8kuNe4LIvY8zO1h2LEsyoRZsky-7YaN4IShEAtCXBQ4TtasjI25lLtT0v_ov11enVBJUw9ZGDI5mDA-HnqujFPwrYDAyBtIDXwF1e6HU7uFhpifVJLcspxW5xwBzklh92dtllFJEGUCwFE1PjZdkZFPrcuo2uje1o9f7TlKvj5qUJtKFxLMdZyjp9gMs6fl4SfQraMMQnHKBYR1R8Zw0O-E4r7ion8f-takMSW_s5-Z7HXUJoyEOXf59idLbtFN24CKat34aDfTIwM9SiDSFBP8tM_LJM75Kg91fUtU2a90SqQGJmUBCJqbm8o126SHp7ht/host/0B28GGAWFNg-3WWNFck5PZWFlRGc"></iframe>
+-->
   </div>
 
     <script>
-      function genIFrameHTML(url) {
-        var myHtml =
-        '<html>'+
-        '<scri'+'pt>' +
-        'function jsonpCallback(jsonp) {' +
-        'parent.postMessage(JSON.stringify(jsonp),\'*\');'+
-        '}' +
-        '</scri'+'pt>' +
-        '<scri'+'pt src=\''+url+'\'></scri'+'pt>'+
-        '</html>';
-
-        return myHtml;
-      }
-
-      function getJsonp(url) {
-        // use promise
-        var iframe= document.createElement("iframe");
-        iframe.height = 0;
-        iframe.width = 0;
-        iframe.style.visibility ="hidden";
-        iframe.style.display ="none";
-        document.body.appendChild(iframe);
-
-        var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
-        var eventer = window[eventMethod];
-        var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
-
-        console.log(url);
-
-        // Listen to message from child window
-        eventer(messageEvent,function(e) {
-            var key = e.message ? "message" : "data";
-            var data = e[key];
-
-            console.log(data); // should do sanity checks HERE
-
-            iframe.remove();
-            document.getElementById("json").innerText = data;
-        },false);
-
-        iframe.contentWindow.document.open();
-        iframe.contentWindow.document.write(genIFrameHTML(url));
-        iframe.contentWindow.document.close();
-      }
-
-
-      function compressUrl(url, additionalInfo) {
-        var myString = url + ":::" + additionalInfo;
-        var compressedString = LZString.compressToUint8Array(myString);
-
-        function y(a){out = []; for(var i= 0; i < a.length; i++){out.push(a[i])}; return out;}
-
-        return  y(compressedString).map(function(x){return printableCharacters[x]}).join("");
-      }
-
-      function decompressUrl(myString) {
-        var ga = [];
-
-        for(var i = 0; i < myString.length;) {
-          var str = "";
-          var oldI = i;
-          if(myString.charCodeAt(i) < 53) {
-            str = myString.substring(i, i+2);
-            i = i + 2;
-          } else {
-            str = myString.substring(i, i+1);
-            i = i + 1;
-          }
-
-          var idx = printableCharacters.indexOf(str);
-          if(idx < 0) {
-            console.log(myString.charAt(oldI)+" "+myString.charCodeAt(oldI));
-            console.log(str + " | ");
-          }
-
-          ga.push(idx);
-
+    /*
+      var i = document.createElement("iframe");
+      i.src = "https://89185ffbbf55a4c2fa00231d24c64e549c31b546.googledrive.com/secure/ACc40b1Y2NH297nwiqjevW1fmtQ0byPM2Lrss-K64moPuGzJBWErCrLa3oczJeO24Z957iSk9wAsPy5GUjDwBwUpIa42eIJI3aiAy2qe961Ht6MqFF47oHglM5alPIWvLLiHmG29ZzxWB9Yftm9MdnOBwZ6hybgwIb6eVABC95en4AoNiv-EijeCkOMPa8NMrU-S8Ap793YD8wlfAvljb3JeEmXIuuf1A4esB9j2JdiksFJ8pVhIMAKnT2PpmKUy4oY2XYx3LtkhLbv8P45c-8vOdSEqXueEEZuX8uFPKE0inqrPsjZC3Qw_pGALVVHE7-JwbArCNvjTNf2P6M4-id97LtQjb0-PCDV60Tm21iDBY_zBp3eOMKB7ZqUGN4-LPDdIgVRwmrjlnVW0Ctjar_6sJyjtiQcmj81o7ZAJk5weDEs2rB25W-gofSO_aNnNWja5r7JKu7xYVCf--p-J7C-YS4DPFtAszco-tYwhXOQNRiBr1EAfKnOvWV1s8tvg_nnldhVeoKZs/host/0B28GGAWFNg-3WWNFck5PZWFlRGc";
+      var first = true;
+      i.onload = function(e){console.log(e);
+        if(first) {
+          console.log(iframe.)
+          i.src = 'about:blank';
+          first = false;
         }
 
-        var ex = new Uint8Array(ga.length);
-        for(var i=0; i < ex.length; i++){
-          ex[i] = ga[i];
+      };*/
+
+      console.log("#####");
+
+      function fetchData(url, callback) {
+            var frame = document.createElement('iframe');
+            frame.onload = function() {
+                frame.onload = function() {
+                    callback(frame.contentWindow.title);
+                    frame.parentNode.removeChild(frame);
+                }
+                frame.src = "about:blank";
+            }
+            frame.src = url;
+            document.body.appendChild(frame);
         }
 
-        var decompressedString = LZString.decompressFromUint8Array(ex);
-        var nfo = decompressedString.split(":::");
+        // using it
+        var y = "https://89185ffbbf55a4c2fa00231d24c64e549c31b546.googledrive.com/secure/ACc40b1Y2NH297nwiqjevW1fmtQ0byPM2Lrss-K64moPuGzJBWErCrLa3oczJeO24Z957iSk9wAsPy5GUjDwBwUpIa42eIJI3aiAy2qe961Ht6MqFF47oHglM5alPIWvLLiHmG29ZzxWB9Yftm9MdnOBwZ6hybgwIb6eVABC95en4AoNiv-EijeCkOMPa8NMrU-S8Ap793YD8wlfAvljb3JeEmXIuuf1A4esB9j2JdiksFJ8pVhIMAKnT2PpmKUy4oY2XYx3LtkhLbv8P45c-8vOdSEqXueEEZuX8uFPKE0inqrPsjZC3Qw_pGALVVHE7-JwbArCNvjTNf2P6M4-id97LtQjb0-PCDV60Tm21iDBY_zBp3eOMKB7ZqUGN4-LPDdIgVRwmrjlnVW0Ctjar_6sJyjtiQcmj81o7ZAJk5weDEs2rB25W-gofSO_aNnNWja5r7JKu7xYVCf--p-J7C-YS4DPFtAszco-tYwhXOQNRiBr1EAfKnOvWV1s8tvg_nnldhVeoKZs/host/0B28GGAWFNg-3WWNFck5PZWFlRGc";
+        fetchData(y, function(x){console.log("!!!! "+x)});
 
-        return {url: nfo[0], additionalInfo: nfo[1]};
 
-      }
 
-      var nfo = decompressUrl(window.location.hash.substring(1));
+      //document.body.appendChild(i);
+    /*
+      var nfo = boombox.web.decompressHash(window.location.hash.substring(1));
 
       document.getElementById("title").innerText = nfo.additionalInfo;
       document.getElementById("url").innerText = "downloading info from "+nfo.url;
 
-      getJsonp(nfo.url);
+      var jsonPromise = boombox.web.getJsonp(document, nfo.url);
 
-      console.log(window.location.hash);
+      jsonPromise.then(function(result){
+        document.getElementById("json").innerText = result;
+      })
+
+
+      console.log(window.location.hash);*/
 
     </script>
 

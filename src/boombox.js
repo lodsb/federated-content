@@ -5,6 +5,9 @@
 var boombox = {};
 boombox.debug_loadDB = false;
 
+boombox.firstLoad = true;
+
+boombox.web = web;
 // "Setup"
 
 var ___db = new loki('boombox_data.json',
@@ -17,28 +20,46 @@ var ___db = new loki('boombox_data.json',
 
 function loadHandler() {
   // init loki db
-  boombox.playlists = ___db.getCollection('playlists');
+  boombox.savedPlaylists = ___db.getCollection('savedPlaylists');
 
   console.log("SDF");
-  console.log((boombox.debug_loadDB===true) || (boombox.playlists == null));
+  console.log((boombox.debug_loadDB===true) || (boombox.savedplaylists == null));
 
   if((boombox.debug_loadDB===false) || (boombox.playlists == null) ) {
     console.log("creating db");
-    boombox.playlists = ___db.addCollection('playlists');
+    boombox.savedPlaylists = ___db.addCollection('savedPlaylists');
     boombox.media = ___db.addCollection('media');
-    boombox.imports = ___db.addCollection('imports');
+    boombox.savedImports = ___db.addCollection('savedImports');
 
-    boombox.playlists.ensureUniqueIndex('hash');
+    boombox.savedPlaylists.ensureUniqueIndex('hash');
     boombox.media.ensureUniqueIndex('hash');
-    boombox.imports.ensureUniqueIndex('uri');
+    boombox.savedPlaylists.ensureUniqueIndex('uri');
   } else {
     boombox.media = ___db.getCollection('media');
-    boombox.imports = ___db.getCollection('imports');
+    boombox.savedImports = ___db.getCollection('savedImports');
 
-    boombox.playlists.ensureUniqueIndex('hash');
+    boombox.savedPlaylists.ensureUniqueIndex('hash');
     boombox.media.ensureUniqueIndex('hash');
-    boombox.imports.ensureUniqueIndex('uri');
+    boombox.savedImports.ensureUniqueIndex('uri');
+
+    boombox.firstLoad = false;
   }
+
+  boombox.imports = new loki.Collection(); // non persistent, for runtime!
+  boombox.playlists= new loki.Collection();
+  // argh, should do something else lateron
+  boombox.savedImports.data.forEach(function(x){
+    boombox.imports.insert(x);
+  });
+
+  boombox.savedPlaylists.data.forEach(function(x){
+    x.persistent = true;
+    boombox.playlists.insert(x);
+  });
+
+  boombox.playlists.ensureUniqueIndex('hash');
+  boombox.imports.ensureUniqueIndex('uri');
+
 }
 
 jQuery(document).ready(function() {
@@ -94,6 +115,20 @@ boombox.search = function(query) {
   return result;
 };
 
+boombox.persist = function(shouldPersist, importItem, playlistItem) {
+
+  if(shouldPersist) {
+      console.log(playlistItem);
+    boombox.savedPlaylists.insert(playlistItem);
+    console.log(importItem);
+    boombox.savedImports.insert(importItem);
+  } else {
+    boombox.savedPlaylists.remove(playlistItem);
+    boombox.savedImports.remove(importItem);
+  }
+
+}
+
 boombox.chooseMediaUri = function(media) {
   // should check media availability and randomly select one
   // send toast on error
@@ -133,10 +168,12 @@ boombox.mediaHash = function(mediaJson) {
 boombox.uniqueAddToDB = function(data, dataAsString) {
   var playlistHash = boombox.stringHash(dataAsString);
 
+  console.log("####");
+  console.log(data);
+
   data.hash = playlistHash;
 
   if(!boombox.playlists.by('hash', playlistHash)) {
-
 
     // check in media first
     var mediaItems = data.media;
@@ -145,7 +182,7 @@ boombox.uniqueAddToDB = function(data, dataAsString) {
 
     var playlistMediaItemHashes = [];
 
-    itemsLength = mediaItems.length;
+    var itemsLength = mediaItems.length;
     for(var mi = 0; mi < itemsLength; mi ++) {
       var mediaItem = mediaItems[mi];
 
@@ -312,12 +349,31 @@ boombox._jsonExceptionLadder = function(url, func, failedFunc){
 //
 
 
-boombox.importJson = function(url, func, failedFunc) {
+boombox.importJson = function(url, data,  func, failedFunc) {
   // TODO: validate, and throw everything away, we dont know!
 
   if(!boombox.imports.by('uri', url)) {
 
-    boombox._jsonExceptionLadder(url, func, failedFunc);
+    //boombox._jsonExceptionLadder(url, func, failedFunc);
+
+    //var data = jQuery.parseJSON(jsonString);
+    var jsonString = JSON.stringify(data);
+
+    var importHash = boombox.uniqueAddToDB(data, jsonString);
+
+    var importDescriptor = {
+      'title': data.title, // shold also have a root directory indicator + colors for my imports list
+      'uri'  : url,
+      'crawl': false, // should lateron be used to retrigger crawling references
+      'type' : 'playlist', // playlist or bucket
+      'refHash' : importHash
+    };
+
+    boombox.imports.insert(importDescriptor);
+
+    func(data);
+
+    boombox.importEvents.fire(boombox.constructEvent("update", importDescriptor));
 
   } else {
     failedFunc("Already exists!");
